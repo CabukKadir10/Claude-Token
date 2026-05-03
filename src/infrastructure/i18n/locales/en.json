@@ -1,0 +1,150 @@
+{
+  "common": {
+    "appName": "Claude Token Dashboard",
+    "appBrand": "claude-tokens",
+    "appTagline": "local jsonl analyser",
+    "footerNote1": "100% in-browser.",
+    "footerNote2": "No data ever leaves the page.",
+    "comingSoon": "Coming in the next step."
+  },
+  "nav": {
+    "viewsLabel": "Views",
+    "settingsLabel": "Settings",
+    "overview": "Overview",
+    "projects": "Projects",
+    "sessions": "Sessions",
+    "timeline": "Timeline",
+    "byDate": "By date",
+    "pricing": "Pricing",
+    "reload": "Reload files",
+    "clear": "Clear"
+  },
+  "topbar": {
+    "themeAria": "Toggle theme",
+    "languageAria": "Change language"
+  },
+  "views": {
+    "overview": { "title": "Overview", "subtitle": "Key metrics and breakdowns" },
+    "projects": { "title": "Projects", "subtitle": "Tokens and cost by project" },
+    "sessions": { "title": "Sessions", "subtitle": "Per-session breakdown" },
+    "timeline": { "title": "Timeline", "subtitle": "Daily and hourly activity" },
+    "byDate": { "title": "By date", "subtitle": "Daily / weekly / monthly" }
+  },
+  "dropzone": {
+    "titlePrefix": "Drop your Claude Code",
+    "titleFolderName": "projects",
+    "titleSuffix": "folder here",
+    "subtitle": "Every .jsonl file is parsed locally. No data leaves your browser.",
+    "pickFolder": "Choose folder",
+    "pickFiles": "Choose .jsonl files",
+    "errorPrefix": "Couldn't parse files",
+    "parsing": {
+      "title": "Parsing files…",
+      "progress": "{done} of {total}"
+    },
+    "ready": {
+      "files": "files",
+      "lines": "lines",
+      "errors": "errors",
+      "addMore": "Add more",
+      "clear": "Clear"
+    }
+  },
+  "overview": {
+    "empty": {
+      "title": "No data yet",
+      "subtitle": "Drop your Claude Code projects folder above to see usage and cost across all sessions."
+    },
+    "kpi": {
+      "cost": "Total cost",
+      "costHint": "Across all events in scope",
+      "tokens": "Total tokens",
+      "tokensUnit": "tokens",
+      "messages": "Messages",
+      "messagesHint": "API calls with usage",
+      "sessions": "Sessions",
+      "sessionsHint": "Distinct conversation IDs",
+      "projects": "Projects",
+      "projectsHint": "Distinct working directories"
+    },
+    "donut": {
+      "title": "Cost by model",
+      "totalCost": "Total cost",
+      "empty": "No cost yet."
+    },
+    "topProjects": {
+      "title": "Top projects",
+      "empty": "No projects yet.",
+      "sessions": "sessions",
+      "messages": "msgs",
+      "tokens": "tokens"
+    },
+    "modelBreakdown": {
+      "title": "Model breakdown",
+      "empty": "No model usage yet.",
+      "model": "Model",
+      "cost": "Cost",
+      "tokens": "Tokens",
+      "messages": "Messages",
+      "sessions": "Sessions",
+      "projects": "Projects"
+    }
+  },
+  "filters": {
+    "dateRange": {
+      "label": "Date range",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear range",
+      "preset": {
+        "all": "All",
+        "last7": "7d",
+        "last30": "30d",
+        "last90": "90d"
+      }
+    }
+  },
+  "timeline": {
+    "noTimestamps": {
+      "title": "No timestamp data",
+      "subtitle": "Timeline needs events with timestamps. Drop newer .jsonl files or check that they include the assistant turns."
+    },
+    "daily": {
+      "title": "Daily activity",
+      "empty": "No daily data yet.",
+      "mode": {
+        "total": "Total",
+        "cost": "Cost",
+        "split": "Split"
+      },
+      "tooltip": {
+        "cost": "Cost",
+        "total": "Total",
+        "input": "Input",
+        "output": "Output",
+        "cacheRead": "Cache read",
+        "cacheWrite": "Cache write",
+        "messages": "Messages"
+      }
+    },
+    "hourly": {
+      "title": "Hourly distribution"
+    },
+    "topDays": {
+      "title": "Busiest days",
+      "empty": "No timestamp data yet.",
+      "messages": "msgs",
+      "tokens": "tokens"
+    }
+  },
+  "placeholder": {
+    "viewWillRender": "{view} view will render here."
+  },
+  "relativeTime": {
+    "justNow": "just now",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "unknown": "–"
+  }
+}

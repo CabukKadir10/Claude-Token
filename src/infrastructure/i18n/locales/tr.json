@@ -1,0 +1,150 @@
+{
+  "common": {
+    "appName": "Claude Token Dashboard",
+    "appBrand": "claude-tokens",
+    "appTagline": "yerel jsonl çözümleyici",
+    "footerNote1": "%100 tarayıcınızda çalışır.",
+    "footerNote2": "Veri sayfadan dışarı çıkmaz.",
+    "comingSoon": "Sonraki adımda eklenecek."
+  },
+  "nav": {
+    "viewsLabel": "Görünümler",
+    "settingsLabel": "Ayarlar",
+    "overview": "Özet",
+    "projects": "Projeler",
+    "sessions": "Oturumlar",
+    "timeline": "Zaman Çizgisi",
+    "byDate": "Tarihe Göre",
+    "pricing": "Fiyatlandırma",
+    "reload": "Yeniden yükle",
+    "clear": "Temizle"
+  },
+  "topbar": {
+    "themeAria": "Tema değiştir",
+    "languageAria": "Dil değiştir"
+  },
+  "views": {
+    "overview": { "title": "Özet", "subtitle": "Anahtar metrikler ve dağılımlar" },
+    "projects": { "title": "Projeler", "subtitle": "Proje bazında token ve maliyet" },
+    "sessions": { "title": "Oturumlar", "subtitle": "Tek oturum kırılımı" },
+    "timeline": { "title": "Zaman Çizgisi", "subtitle": "Günlük ve saatlik aktivite" },
+    "byDate": { "title": "Tarihe Göre", "subtitle": "Günlük / haftalık / aylık" }
+  },
+  "dropzone": {
+    "titlePrefix": "Claude Code",
+    "titleFolderName": "projects",
+    "titleSuffix": "klasörünü buraya bırakın",
+    "subtitle": "Tüm .jsonl dosyaları yerel olarak ayrıştırılır. Veri tarayıcı dışına çıkmaz.",
+    "pickFolder": "Klasör seç",
+    "pickFiles": ".jsonl dosyaları seç",
+    "errorPrefix": "Dosyalar ayrıştırılamadı",
+    "parsing": {
+      "title": "Dosyalar ayrıştırılıyor…",
+      "progress": "{total} dosyadan {done} tamamlandı"
+    },
+    "ready": {
+      "files": "dosya",
+      "lines": "satır",
+      "errors": "hata",
+      "addMore": "Daha ekle",
+      "clear": "Temizle"
+    }
+  },
+  "overview": {
+    "empty": {
+      "title": "Henüz veri yok",
+      "subtitle": "Tüm oturumlardaki kullanım ve maliyeti görmek için Claude Code projeler klasörünüzü yukarıdaki alana bırakın."
+    },
+    "kpi": {
+      "cost": "Toplam maliyet",
+      "costHint": "Kapsamdaki tüm olaylar",
+      "tokens": "Toplam token",
+      "tokensUnit": "token",
+      "messages": "Mesaj",
+      "messagesHint": "Token üreten API çağrıları",
+      "sessions": "Oturum",
+      "sessionsHint": "Tekil konuşma kimliği",
+      "projects": "Proje",
+      "projectsHint": "Tekil çalışma dizini"
+    },
+    "donut": {
+      "title": "Modele göre maliyet",
+      "totalCost": "Toplam maliyet",
+      "empty": "Henüz maliyet yok."
+    },
+    "topProjects": {
+      "title": "En çok kullanılan projeler",
+      "empty": "Henüz proje yok.",
+      "sessions": "oturum",
+      "messages": "mesaj",
+      "tokens": "token"
+    },
+    "modelBreakdown": {
+      "title": "Model dağılımı",
+      "empty": "Henüz model kullanımı yok.",
+      "model": "Model",
+      "cost": "Maliyet",
+      "tokens": "Token",
+      "messages": "Mesaj",
+      "sessions": "Oturum",
+      "projects": "Proje"
+    }
+  },
+  "filters": {
+    "dateRange": {
+      "label": "Tarih aralığı",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "clear": "Aralığı temizle",
+      "preset": {
+        "all": "Tümü",
+        "last7": "7g",
+        "last30": "30g",
+        "last90": "90g"
+      }
+    }
+  },
+  "timeline": {
+    "noTimestamps": {
+      "title": "Zaman damgası verisi yok",
+      "subtitle": "Zaman çizgisi için zaman damgası taşıyan olaylar gerekiyor. Daha yeni .jsonl dosyalarını ekleyin veya asistan yanıtlarını içerdiğinden emin olun."
+    },
+    "daily": {
+      "title": "Günlük etkinlik",
+      "empty": "Henüz günlük veri yok.",
+      "mode": {
+        "total": "Toplam",
+        "cost": "Maliyet",
+        "split": "Ayrıntılı"
+      },
+      "tooltip": {
+        "cost": "Maliyet",
+        "total": "Toplam",
+        "input": "Giriş",
+        "output": "Çıkış",
+        "cacheRead": "Önbellek okuma",
+        "cacheWrite": "Önbellek yazma",
+        "messages": "Mesaj"
+      }
+    },
+    "hourly": {
+      "title": "Saatlik dağılım"
+    },
+    "topDays": {
+      "title": "En yoğun günler",
+      "empty": "Henüz zaman damgası verisi yok.",
+      "messages": "mesaj",
+      "tokens": "token"
+    }
+  },
+  "placeholder": {
+    "viewWillRender": "{view} görünümü içeriği burada renderlanacak."
+  },
+  "relativeTime": {
+    "justNow": "az önce",
+    "minutesAgo": "{n}d önce",
+    "hoursAgo": "{n}sa önce",
+    "daysAgo": "{n}g önce",
+    "unknown": "–"
+  }
+}

@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'Fira Code', Menlo, monospace;
+
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Surface palette (light) */
+  --color-background: oklch(99% 0 0);
+  --color-foreground: oklch(20% 0.01 255);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(20% 0.01 255);
+  --color-muted: oklch(96.5% 0.005 255);
+  --color-muted-foreground: oklch(48% 0.01 255);
+  --color-border: oklch(92% 0.005 255);
+  --color-ring: oklch(74% 0.16 60);
+
+  /* Brand */
+  --color-accent: oklch(74% 0.16 60);
+  --color-accent-foreground: oklch(18% 0.05 60);
+
+  /* Token-type series (used by charts and KPI cards) */
+  --color-token-input: oklch(62% 0.18 255);
+  --color-token-output: oklch(62% 0.16 155);
+  --color-token-cache-read: oklch(74% 0.14 75);
+  --color-token-cache-write: oklch(60% 0.18 25);
+  --color-token-total: oklch(60% 0.18 295);
+  --color-cost: oklch(64% 0.13 200);
+}
+
+.dark {
+  --color-background: oklch(16% 0.005 255);
+  --color-foreground: oklch(94% 0.005 255);
+  --color-card: oklch(19% 0.005 255);
+  --color-card-foreground: oklch(94% 0.005 255);
+  --color-muted: oklch(22% 0.005 255);
+  --color-muted-foreground: oklch(65% 0.01 255);
+  --color-border: oklch(28% 0.005 255);
+  --color-ring: oklch(78% 0.16 60);
+
+  --color-accent: oklch(78% 0.16 60);
+  --color-accent-foreground: oklch(16% 0.005 255);
+
+  --color-token-input: oklch(70% 0.16 255);
+  --color-token-output: oklch(72% 0.15 155);
+  --color-token-cache-read: oklch(80% 0.14 75);
+  --color-token-cache-write: oklch(70% 0.18 25);
+  --color-token-total: oklch(72% 0.16 295);
+  --color-cost: oklch(74% 0.13 200);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-accent) 30%, transparent);
+  }
+}

@@ -1,0 +1,2894 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code · Token ve Maliyet Paneli</title>
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --bg-elev: #141418;
+    --bg-elev-2: #1b1b21;
+    --bg-elev-3: #22222a;
+    --border: #25252c;
+    --border-hi: #34343d;
+    --fg: #e7e7ea;
+    --fg-dim: #a4a4ae;
+    --fg-mute: #6c6c76;
+    --accent: #f59e0b;
+    --accent-dim: #78350f;
+    --input: #3b82f6;
+    --output: #10b981;
+    --cache: #f59e0b;
+    --cache-write: #ef4444;
+    --total: #a78bfa;
+    --cost: #22d3ee;
+    --radius: 6px;
+    --radius-sm: 4px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(245,158,11,0.04), transparent 60%),
+      radial-gradient(1000px 500px at 110% 0%, rgba(167,139,250,0.03), transparent 60%),
+      var(--bg);
+    color: var(--fg);
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  aside {
+    background: var(--bg-elev);
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .brand::before { content: '> '; color: var(--accent); }
+  .brand-sub { font-size: 10px; color: var(--fg-mute); margin-bottom: 24px; }
+
+  .nav { display: flex; flex-direction: column; gap: 2px; margin-bottom: 20px; }
+  .nav-item {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--fg-dim);
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background .12s, color .12s;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg-elev-2); color: var(--fg); }
+  .nav-item.active {
+    background: var(--bg-elev-3);
+    color: var(--fg);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .nav-item .icn { width: 14px; text-align: center; color: var(--fg-mute); font-size: 11px; }
+  .nav-item.active .icn { color: var(--accent); }
+
+  .nav-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--fg-mute);
+    padding: 8px 10px 4px;
+  }
+
+  .sidebar-stats {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--fg-mute);
+    line-height: 1.8;
+  }
+  .sidebar-stats .k { color: var(--fg-mute); }
+  .sidebar-stats .v { color: var(--fg-dim); float: right; }
+  .sidebar-stats .cost-v { color: var(--cost); float: right; }
+
+  main { padding: 20px 28px; max-width: 100%; overflow-x: hidden; }
+
+  .page-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 16px;
+  }
+  .page-title { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+  .page-sub { color: var(--fg-mute); font-size: 11px; }
+
+  #dropzone {
+    display: block;
+    border: 2px dashed var(--border-hi);
+    background:
+      radial-gradient(ellipse 60% 80% at 50% 0%, rgba(34, 211, 238, 0.08), transparent 70%),
+      var(--bg-elev);
+    padding: 40px 28px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, transform .15s;
+    margin-bottom: 16px;
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+  }
+  #dropzone:hover, #dropzone.drag {
+    border-color: var(--accent);
+    background:
+      radial-gradient(ellipse 60% 80% at 50% 0%, rgba(34, 211, 238, 0.16), transparent 70%),
+      var(--bg-elev-2);
+  }
+  #dropzone.drag { transform: scale(1.005); }
+  #dropzone input { display: none; }
+
+  .dz-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    border-radius: 12px;
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border-hi);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 24px;
+  }
+  .dz-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--fg);
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .dz-sub {
+    color: var(--fg-dim);
+    font-size: 12px;
+    margin-bottom: 18px;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+  }
+  .dz-actions {
+    display: inline-flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .dz-btn {
+    background: var(--accent);
+    color: #000;
+    border: 1px solid var(--accent);
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dz-btn:hover { filter: brightness(1.1); }
+  .dz-btn.secondary {
+    background: transparent;
+    color: var(--fg-dim);
+    border-color: var(--border-hi);
+    font-weight: 500;
+  }
+  .dz-btn.secondary:hover { color: var(--fg); border-color: var(--accent); }
+  .dz-path {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: var(--fg-dim);
+    margin: 0 4px;
+  }
+  .dz-path .copy {
+    cursor: pointer;
+    color: var(--fg-mute);
+    padding: 2px 4px;
+    border-radius: 3px;
+    user-select: none;
+  }
+  .dz-path .copy:hover { color: var(--accent); background: var(--bg-elev); }
+  .dz-path .copy.copied { color: var(--accent); }
+  .dz-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    max-width: 760px;
+    margin: 0 auto 4px;
+    text-align: left;
+  }
+  .dz-step {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--fg-dim);
+    line-height: 1.5;
+  }
+  .dz-step b {
+    color: var(--fg);
+    display: block;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+  .dz-step .num {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    text-align: center;
+    font-weight: 700;
+    font-size: 10px;
+    line-height: 18px;
+    margin-right: 6px;
+    vertical-align: 1px;
+  }
+  .dz-hint {
+    color: var(--fg-mute);
+    font-size: 10px;
+    margin-top: 14px;
+    border-top: 1px dashed var(--border);
+    padding-top: 12px;
+  }
+
+  /* compact mode once data is loaded */
+  #dropzone.compact {
+    padding: 10px 16px;
+    text-align: left;
+    background: var(--bg-elev);
+  }
+  #dropzone.compact .dz-icon,
+  #dropzone.compact .dz-sub,
+  #dropzone.compact .dz-steps,
+  #dropzone.compact .dz-hint,
+  #dropzone.compact .dz-path-wrap { display: none; }
+  #dropzone.compact .dz-title { font-size: 12px; display: inline-block; margin: 0 12px 0 0; color: var(--fg-dim); }
+  #dropzone.compact .dz-actions { display: inline-flex; margin: 0; gap: 8px; }
+  #dropzone.compact .dz-btn { padding: 4px 10px; font-size: 11px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-bar .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-mute);
+    padding-right: 4px;
+  }
+  .date-input {
+    background: var(--bg-elev-2);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    padding: 5px 8px;
+    font: inherit;
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    color-scheme: dark;
+    outline: none;
+  }
+  .date-input:focus { border-color: var(--accent); }
+  .filter-bar .pills { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filter-bar .divider {
+    width: 1px; height: 18px; background: var(--border);
+    margin: 0 4px;
+  }
+  .filter-info {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--fg-mute);
+  }
+  .filter-info .hi { color: var(--fg-dim); }
+
+  .toast {
+    color: var(--fg-mute);
+    font-size: 11px;
+    margin-bottom: 12px;
+    min-height: 16px;
+  }
+  .toast .ok { color: var(--output); }
+  .toast .err { color: var(--cache-write); }
+
+  /* Cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--fg-mute);
+    opacity: .8;
+  }
+  .card.total::before { background: var(--total); }
+  .card.input::before { background: var(--input); }
+  .card.output::before { background: var(--output); }
+  .card.cache-read::before { background: var(--cache); }
+  .card.cache-write::before { background: var(--cache-write); }
+  .card.cost::before { background: var(--cost); }
+
+  .card .label {
+    font-size: 10px;
+    color: var(--fg-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .card .val { font-size: 20px; font-weight: 500; color: var(--fg); }
+  .card .sub {
+    font-size: 10px;
+    color: var(--fg-mute);
+    margin-top: 4px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .card .sub .pct { color: var(--fg-dim); }
+  .card .sub .card-cost {
+    color: var(--cost);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .card .sub-cost {
+    border-top: 1px dashed var(--border);
+    padding-top: 4px;
+    margin-top: 6px;
+  }
+  .card.cost .val { color: var(--cost); }
+
+  /* Sections */
+  .section {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .section h2 {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+  }
+  .section h2::before { content: '# '; color: var(--accent); }
+  .section-body { padding: 14px; }
+  .section-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .btn {
+    background: var(--bg-elev-2);
+    color: var(--fg-dim);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    font: inherit;
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .btn:hover { background: var(--bg-elev-3); color: var(--fg); border-color: var(--border-hi); }
+  .btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #1a0f03; border-color: var(--accent); }
+  .btn.primary:hover { background: #fbbf24; }
+
+  .search {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 11px;
+    width: 220px;
+    outline: none;
+    transition: border-color .12s;
+  }
+  .search:focus { border-color: var(--accent); }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 960px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    body { grid-template-columns: 1fr; }
+    aside { position: static; height: auto; }
+  }
+
+  /* Bar chart */
+  .chart-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 0;
+    font-size: 12px;
+  }
+  .chart-label {
+    width: 180px;
+    color: var(--fg-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chart-bar-wrap {
+    flex: 1;
+    background: var(--bg-elev-2);
+    height: 22px;
+    border-radius: 2px;
+    display: flex;
+    overflow: hidden;
+    min-width: 30px;
+  }
+  .chart-seg { height: 100%; transition: opacity .15s; }
+  .chart-seg:hover { opacity: .8; }
+  .chart-seg.input { background: var(--input); }
+  .chart-seg.output { background: var(--output); }
+  .chart-seg.cache { background: var(--cache); }
+  .chart-seg.cache-write { background: var(--cache-write); }
+  .chart-total {
+    width: 140px;
+    text-align: right;
+    color: var(--fg-dim);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+  }
+  .chart-total .cost { color: var(--cost); margin-left: 8px; }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--fg-dim);
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  .legend-dot.input { background: var(--input); }
+  .legend-dot.output { background: var(--output); }
+  .legend-dot.cache { background: var(--cache); }
+  .legend-dot.cache-write { background: var(--cache-write); }
+
+  /* Donut */
+  .donut-wrap { display: flex; align-items: center; gap: 24px; padding: 10px 0; }
+  .donut svg { display: block; }
+  .donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; font-size: 11px; }
+  .donut-item { display: flex; align-items: center; gap: 10px; }
+  .donut-swatch { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  .donut-item .nm { color: var(--fg-dim); width: 90px; }
+  .donut-item .vl { color: var(--fg); font-variant-numeric: tabular-nums; }
+  .donut-item .pc { color: var(--fg-mute); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* Timeline */
+  .timeline-svg { width: 100%; height: 240px; display: block; }
+  .tl-grid line { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 3; }
+  .tl-axis text { fill: var(--fg-mute); font-size: 10px; font-family: inherit; }
+  .tl-series { fill: none; stroke-width: 1.5; }
+  .tl-tooltip {
+    position: absolute;
+    background: var(--bg-elev-3);
+    border: 1px solid var(--border-hi);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .1s;
+    z-index: 20;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  }
+  .tl-tooltip.show { opacity: 1; }
+  .tl-tooltip .d { color: var(--fg-mute); margin-bottom: 4px; }
+  .tl-tooltip .row { display: flex; justify-content: space-between; gap: 12px; }
+  .tl-tooltip .row .k { color: var(--fg-dim); }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--bg-elev-2);
+    color: var(--fg-mute);
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th.num { text-align: right; }
+  thead th:hover { color: var(--fg); }
+  thead th.sorted { color: var(--accent); }
+  thead th.sorted::after { content: ' ▾'; font-size: 9px; }
+  thead th.sorted.asc::after { content: ' ▴'; }
+
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--fg-dim);
+  }
+  tbody td.num { text-align: right; color: var(--fg); }
+  tbody td.cost { color: var(--cost); text-align: right; font-weight: 500; }
+  tbody td.proj { color: var(--fg); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tbody tr.clickable { cursor: pointer; }
+  tbody tr.clickable:hover { background: var(--bg-elev-2); }
+  tbody tr.proj-row .caret {
+    display: inline-block;
+    width: 12px;
+    color: var(--fg-mute);
+    transition: transform .15s;
+  }
+  tbody tr.proj-row.open .caret { transform: rotate(90deg); color: var(--accent); }
+
+  tbody tr.session-row { background: #0f0f13; display: none; }
+  tbody tr.session-row.open { display: table-row; }
+  tbody tr.session-row td {
+    padding: 6px 12px 6px 28px;
+    font-size: 11px;
+    color: var(--fg-mute);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr.session-row td.num { color: var(--fg-dim); }
+  tbody tr.session-row td.cost { color: var(--cost); }
+  tbody tr.session-row .sid-prefix { color: var(--accent); }
+  tbody tr.session-row .sid-link {
+    color: var(--fg-dim);
+    cursor: pointer;
+  }
+  tbody tr.session-row .sid-link:hover { color: var(--accent); text-decoration: underline; }
+
+  .mini-bar {
+    display: inline-block;
+    width: 50px;
+    height: 4px;
+    background: var(--bg-elev-3);
+    border-radius: 2px;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  .mini-bar > div { height: 100%; background: var(--accent); }
+
+  .empty { text-align: center; padding: 48px 16px; color: var(--fg-mute); font-size: 12px; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg-elev);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius);
+    max-width: 860px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: var(--bg-elev);
+    z-index: 2;
+  }
+  .modal-head .t { font-size: 14px; }
+  .modal-head .s { font-size: 11px; color: var(--fg-mute); margin-top: 4px; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--fg-mute);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+  }
+  .modal-close:hover { color: var(--fg); background: var(--bg-elev-2); }
+  .modal-body { padding: 20px; }
+
+  .kv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .kv {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+  }
+  .kv .k {
+    font-size: 10px;
+    color: var(--fg-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .kv .v { font-size: 14px; color: var(--fg); margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+  footer {
+    text-align: center;
+    color: var(--fg-mute);
+    font-size: 10px;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--fg-mute); }
+
+  .hidden { display: none !important; }
+
+  .topn { display: grid; gap: 8px; }
+  .topn-item {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    align-items: center;
+    cursor: pointer;
+    transition: border-color .12s, background .12s;
+  }
+  .topn-item:hover { border-color: var(--border-hi); background: var(--bg-elev-3); }
+  .topn-rank { color: var(--fg-mute); font-size: 11px; }
+  .topn-name { color: var(--fg-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topn-name .meta { color: var(--fg-mute); font-size: 10px; margin-left: 8px; }
+  .topn-val { color: var(--fg); font-variant-numeric: tabular-nums; font-size: 11px; text-align: right; }
+  .topn-val .cost-val { color: var(--cost); display: block; font-size: 10px; margin-top: 2px; }
+
+  /* Pricing editor */
+  .pricing-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+  }
+  .pricing-table th, .pricing-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .pricing-table th {
+    background: var(--bg-elev-2);
+    text-align: right;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-mute);
+    font-weight: 500;
+  }
+  .pricing-table th:first-child { text-align: left; }
+  .pricing-table td:first-child {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .pricing-table td:first-child small {
+    display: block;
+    color: var(--fg-mute);
+    font-weight: normal;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .pricing-table td.num { text-align: right; }
+  .price-input {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 4px 8px;
+    font: inherit;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    width: 80px;
+    text-align: right;
+    outline: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .price-input:focus { border-color: var(--accent); }
+  .price-unit {
+    font-size: 10px;
+    color: var(--fg-mute);
+    margin-left: 4px;
+  }
+  .price-input { width: 68px; }
+
+  /* Model breakdown card */
+  .mb-card {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .mb-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .mb-title {
+    color: var(--fg);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .mb-sub {
+    color: var(--fg-mute);
+    font-size: 10px;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+  }
+  .mb-rows {
+    display: grid;
+    grid-template-columns: 90px 1fr auto auto;
+    gap: 2px 12px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    padding: 6px 0;
+    border-top: 1px dashed var(--border);
+  }
+  .mb-row {
+    display: contents;
+  }
+  .mb-row .mb-k { color: var(--fg-mute); }
+  .mb-row .mb-q { color: var(--fg-dim); text-align: right; }
+  .mb-row .mb-r { color: var(--fg-mute); font-size: 10px; text-align: right; }
+  .mb-row .mb-s { color: var(--cost); text-align: right; }
+  .mb-foot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--fg-mute);
+    border-top: 1px dashed var(--border);
+    padding-top: 6px;
+    margin-top: 2px;
+  }
+  .mb-foot span:last-child { color: var(--cost); }
+
+  .note {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    color: var(--fg-dim);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  .cost-badge {
+    color: var(--cost);
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">claude-tokens</div>
+  <div class="brand-sub">yerel jsonl çözümleyici</div>
+
+  <div class="nav-label">Görünümler</div>
+  <div class="nav">
+    <div class="nav-item active" data-view="overview"><span class="icn">◆</span>Özet</div>
+    <div class="nav-item" data-view="projects"><span class="icn">▦</span>Projeler</div>
+    <div class="nav-item" data-view="sessions"><span class="icn">≡</span>Oturumlar</div>
+    <div class="nav-item" data-view="timeline"><span class="icn">↗</span>Zaman Çizgisi</div>
+    <div class="nav-item" data-view="by-date"><span class="icn">📅</span>Tarihe Göre</div>
+  </div>
+
+  <div class="nav-label">Ayarlar</div>
+  <div class="nav">
+    <div class="nav-item" id="btn-pricing"><span class="icn">$</span>Fiyatlandırma</div>
+    <div class="nav-item" id="btn-reload"><span class="icn">↻</span>Dosyaları yeniden yükle</div>
+    <div class="nav-item" id="btn-clear"><span class="icn">×</span>Temizle</div>
+  </div>
+
+  <div class="sidebar-stats" id="sidebar-stats">
+    <span class="k">dosya</span><span class="v">0</span><br>
+    <span class="k">proje</span><span class="v">0</span><br>
+    <span class="k">oturum</span><span class="v">0</span><br>
+    <span class="k">mesaj</span><span class="v">0</span><br>
+    <span class="k">tahmini maliyet</span><span class="cost-v">$0.00</span>
+  </div>
+</aside>
+
+<main>
+  <div class="page-header">
+    <div>
+      <div class="page-title" id="page-title">Özet</div>
+      <div class="page-sub" id="page-sub">Başlamak için Claude Code JSONL dosyalarınızı yükleyin.</div>
+    </div>
+  </div>
+
+  <div id="dropzone">
+    <div class="dz-icon" aria-hidden="true">📁</div>
+    <div class="dz-title">Claude Code <code>projects</code> klasörünü buraya bırakın</div>
+    <div class="dz-sub">
+      Claude Code her oturumu <code>.jsonl</code> olarak bu klasöre yazar.
+      <b>Tüm klasörü</b> sürükleyip bırakın ya da aşağıdan seçin — tüm alt klasörler taranır.
+    </div>
+
+    <div class="dz-actions">
+      <button type="button" class="dz-btn" id="dz-pick-folder">📂 Klasör seç</button>
+      <button type="button" class="dz-btn secondary" id="dz-pick-files">.jsonl dosyaları seç</button>
+    </div>
+
+    <div class="dz-path-wrap" style="margin-bottom:18px">
+      <div style="font-size:10px; color:var(--fg-mute); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px">Klasör konumu</div>
+      <span class="dz-path" title="Windows">
+        <span style="color:var(--fg-mute)">Windows</span>
+        <code id="dz-path-win">%USERPROFILE%\.claude\projects</code>
+        <span class="copy" data-copy="#dz-path-win" title="Kopyala">⧉</span>
+      </span>
+      <span class="dz-path" title="macOS / Linux">
+        <span style="color:var(--fg-mute)">macOS / Linux</span>
+        <code id="dz-path-mac">~/.claude/projects</code>
+        <span class="copy" data-copy="#dz-path-mac" title="Kopyala">⧉</span>
+      </span>
+    </div>
+
+    <div class="dz-steps">
+      <div class="dz-step">
+        <b><span class="num">1</span>Klasörü açın</b>
+        Gezgin'de (Explorer / Finder) yukarıdaki yola gidin. Klasör yoksa Claude Code'u bir kez çalıştırın.
+      </div>
+      <div class="dz-step">
+        <b><span class="num">2</span>Sürükleyin ya da seçin</b>
+        <code>projects</code> klasörünün tamamını buraya bırakın veya "Klasör seç" düğmesine tıklayın.
+      </div>
+      <div class="dz-step">
+        <b><span class="num">3</span>Hemen analiz</b>
+        Dosyalar yerel olarak ayrıştırılır. Veri tarayıcı dışına çıkmaz.
+      </div>
+    </div>
+
+    <div class="dz-hint">
+      💡 Tek bir oturumu incelemek için <b>Shift + tık</b> yaparak tek tek <code>.jsonl</code> dosyaları da seçebilirsiniz.
+    </div>
+
+    <input type="file" id="file-input" multiple webkitdirectory directory />
+    <input type="file" id="file-input-single" multiple accept=".jsonl" />
+  </div>
+
+  <!-- Filtre çubuğu -->
+  <div class="filter-bar" id="filter-bar" style="display:none">
+    <span class="label">Tarih</span>
+    <input type="date" id="date-from" class="date-input">
+    <span style="color:var(--fg-mute)">→</span>
+    <input type="date" id="date-to" class="date-input">
+    <div class="divider"></div>
+    <div class="pills">
+      <button class="btn active" data-range="all">Tümü</button>
+      <button class="btn" data-range="today">Bugün</button>
+      <button class="btn" data-range="7d">7g</button>
+      <button class="btn" data-range="30d">30g</button>
+      <button class="btn" data-range="month">Bu ay</button>
+      <button class="btn" data-range="lastmonth">Geçen ay</button>
+    </div>
+    <div class="filter-info" id="filter-info"></div>
+  </div>
+
+  <div class="toast" id="toast">henüz dosya yüklenmedi.</div>
+
+  <!-- OVERVIEW -->
+  <section class="view" id="view-overview">
+    <div class="cards" id="cards"></div>
+
+    <div class="grid-3">
+      <div class="section">
+        <div class="section-head"><h2>token dağılımı</h2></div>
+        <div class="section-body">
+          <div class="donut-wrap">
+            <div class="donut" id="donut"></div>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2>en çok kullanılan projeler</h2>
+          <div class="section-actions">
+            <button class="btn active" data-topn="total">toplam</button>
+            <button class="btn" data-topn="cost">$ maliyet</button>
+            <button class="btn" data-topn="input">giriş</button>
+            <button class="btn" data-topn="output">çıkış</button>
+            <button class="btn" data-topn="cacheRead">önbellek</button>
+          </div>
+        </div>
+        <div class="section-body">
+          <div class="topn" id="topn-projects"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="section">
+        <div class="section-head"><h2>en çok kullanılan oturumlar</h2></div>
+        <div class="section-body">
+          <div class="topn" id="topn-sessions"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2>modele göre maliyet</h2></div>
+        <div class="section-body">
+          <div id="model-breakdown"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJELER -->
+  <section class="view hidden" id="view-projects">
+    <div class="section">
+      <div class="section-head">
+        <h2>proje kırılımı</h2>
+        <div class="section-actions">
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot input"></div>giriş</div>
+            <div class="legend-item"><div class="legend-dot output"></div>çıkış</div>
+            <div class="legend-item"><div class="legend-dot cache"></div>önbellek-okuma</div>
+            <div class="legend-item"><div class="legend-dot cache-write"></div>önbellek-yazma</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div id="chart"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>projeler</h2>
+        <div class="section-actions">
+          <input type="text" class="search" id="search-projects" placeholder="projelerde ara…">
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="details">
+          <thead>
+            <tr>
+              <th data-sort="name">proje</th>
+              <th class="num" data-sort="cost">maliyet</th>
+              <th class="num sorted" data-sort="total">toplam</th>
+              <th class="num" data-sort="input">giriş</th>
+              <th class="num" data-sort="output">çıkış</th>
+              <th class="num" data-sort="cacheRead">önb-r</th>
+              <th class="num" data-sort="cacheWrite">önb-w</th>
+              <th class="num" data-sort="sessions">oturum</th>
+              <th class="num" data-sort="messages">mesaj</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- OTURUMLAR -->
+  <section class="view hidden" id="view-sessions">
+    <div class="section">
+      <div class="section-head">
+        <h2>tüm oturumlar</h2>
+        <div class="section-actions">
+          <input type="text" class="search" id="search-sessions" placeholder="oturum / projede ara…">
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="sessions-table">
+          <thead>
+            <tr>
+              <th data-sort="sid">oturum</th>
+              <th data-sort="project">proje</th>
+              <th class="num" data-sort="cost">maliyet</th>
+              <th class="num sorted" data-sort="total">toplam</th>
+              <th class="num" data-sort="input">giriş</th>
+              <th class="num" data-sort="output">çıkış</th>
+              <th class="num" data-sort="cacheRead">önb-r</th>
+              <th class="num" data-sort="cacheWrite">önb-w</th>
+              <th class="num" data-sort="messages">mesaj</th>
+              <th data-sort="last">son etkinlik</th>
+            </tr>
+          </thead>
+          <tbody id="sessions-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ZAMAN ÇİZGİSİ -->
+  <section class="view hidden" id="view-timeline">
+    <div class="section">
+      <div class="section-head">
+        <h2>günlük etkinlik</h2>
+        <div class="section-actions">
+          <button class="btn active" data-series="total">toplam</button>
+          <button class="btn" data-series="cost">maliyet</button>
+          <button class="btn" data-series="split">ayrıntılı</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div style="position:relative">
+          <svg class="timeline-svg" id="timeline-svg"></svg>
+          <div class="tl-tooltip" id="tl-tooltip"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="section">
+        <div class="section-head"><h2>en yoğun günler</h2></div>
+        <div class="section-body">
+          <div class="topn" id="top-days"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2>saatlik dağılım</h2></div>
+        <div class="section-body">
+          <svg id="hour-svg" width="100%" height="180"></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TARİHE GÖRE -->
+  <section class="view hidden" id="view-by-date">
+    <div class="section">
+      <div class="section-head">
+        <h2>günlük kullanım</h2>
+        <div class="section-actions">
+          <button class="btn active" data-groupby="day">Günlük</button>
+          <button class="btn" data-groupby="week">Haftalık</button>
+          <button class="btn" data-groupby="month">Aylık</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="by-date-table">
+          <thead>
+            <tr>
+              <th data-sort="date">tarih</th>
+              <th class="num sorted" data-sort="cost">maliyet</th>
+              <th class="num" data-sort="total">toplam</th>
+              <th class="num" data-sort="input">giriş</th>
+              <th class="num" data-sort="output">çıkış</th>
+              <th class="num" data-sort="cacheRead">önb-r</th>
+              <th class="num" data-sort="cacheWrite">önb-w</th>
+              <th class="num" data-sort="messages">mesaj</th>
+              <th class="num" data-sort="sessions">oturum</th>
+              <th class="num" data-sort="projects">proje</th>
+            </tr>
+          </thead>
+          <tbody id="by-date-tbody"></tbody>
+          <tfoot id="by-date-tfoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div id="empty" class="empty">başlamak için yukarıdan <code>.jsonl</code> dosyalarını bırakın.</div>
+
+  <footer>%100 tarayıcınızda çalışır · veriler sayfadan dışarı çıkmaz</footer>
+</main>
+
+<!-- Oturum Penceresi -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="t" id="modal-title">Oturum</div>
+        <div class="s" id="modal-sub"></div>
+      </div>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Fiyatlandırma Penceresi -->
+<div class="modal-backdrop" id="pricing-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="t">Fiyatlandırma · 1M token başına (USD)</div>
+        <div class="s">anthropic.com'daki resmi liste fiyatları (modele göre). Tarayıcınızda yerel olarak saklanır.</div>
+      </div>
+      <button class="modal-close" id="pricing-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="note">
+        Her mesaj bir <code>model</code> alanı taşır ve aşağıdaki ilgili model satırıyla eşleştirilir
+        (örn. <b>claude-opus-4-7-*</b> → Opus 4.7). Sütunlar: <b>Giriş</b> = temel giriş tokenları,
+        <b>Çıkış</b> = çıkış tokenları, <b>Önbellek okuma</b> = önbellek isabetleri ve tazelemeler,
+        <b>5dk</b> / <b>1sa</b> = geçici önbellek-yazma oranları.
+      </div>
+      <table class="pricing-table" id="pricing-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Giriş</th>
+            <th>Çıkış</th>
+            <th>Önbellek okuma</th>
+            <th>5dk yazma</th>
+            <th>1sa yazma</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end">
+        <button class="btn" id="pricing-reset">Varsayılanlara sıfırla</button>
+        <button class="btn primary" id="pricing-save">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ======= PRICING DEFAULTS (USD per 1M tokens) =======
+  // Source: anthropic.com/pricing (official list). Columns:
+  //   in   = Base Input Tokens
+  //   out  = Output Tokens
+  //   cr   = Cache Hits & Refreshes (cache read)
+  //   cw5m = 5-minute Cache Writes
+  //   cw1h = 1-hour Cache Writes
+  const DEFAULT_PRICING = {
+    'opus-4-7':   { in: 5.00,  out: 25.00, cr: 0.50, cw5m: 6.25,  cw1h: 10.00, label: 'Claude Opus 4.7',                match: 'opus-4-7' },
+    'opus-4-6':   { in: 5.00,  out: 25.00, cr: 0.50, cw5m: 6.25,  cw1h: 10.00, label: 'Claude Opus 4.6',                match: 'opus-4-6' },
+    'opus-4-5':   { in: 5.00,  out: 25.00, cr: 0.50, cw5m: 6.25,  cw1h: 10.00, label: 'Claude Opus 4.5',                match: 'opus-4-5' },
+    'opus-4-1':   { in: 15.00, out: 75.00, cr: 1.50, cw5m: 18.75, cw1h: 30.00, label: 'Claude Opus 4.1',                match: 'opus-4-1' },
+    'opus-4':     { in: 15.00, out: 75.00, cr: 1.50, cw5m: 18.75, cw1h: 30.00, label: 'Claude Opus 4',                  match: 'opus-4' },
+    'opus-3':     { in: 15.00, out: 75.00, cr: 1.50, cw5m: 18.75, cw1h: 30.00, label: 'Claude Opus 3 (kullanımdan kaldırıldı)', match: 'opus-3' },
+    'sonnet-4-6': { in: 3.00,  out: 15.00, cr: 0.30, cw5m: 3.75,  cw1h: 6.00,  label: 'Claude Sonnet 4.6',              match: 'sonnet-4-6' },
+    'sonnet-4-5': { in: 3.00,  out: 15.00, cr: 0.30, cw5m: 3.75,  cw1h: 6.00,  label: 'Claude Sonnet 4.5',              match: 'sonnet-4-5' },
+    'sonnet-4':   { in: 3.00,  out: 15.00, cr: 0.30, cw5m: 3.75,  cw1h: 6.00,  label: 'Claude Sonnet 4',                match: 'sonnet-4' },
+    'sonnet-3-7': { in: 3.00,  out: 15.00, cr: 0.30, cw5m: 3.75,  cw1h: 6.00,  label: 'Claude Sonnet 3.7 (kullanımdan kaldırıldı)', match: 'sonnet-3-7' },
+    'haiku-4-5':  { in: 1.00,  out: 5.00,  cr: 0.10, cw5m: 1.25,  cw1h: 2.00,  label: 'Claude Haiku 4.5',               match: 'haiku-4-5' },
+    'haiku-3-5':  { in: 0.80,  out: 4.00,  cr: 0.08, cw5m: 1.00,  cw1h: 1.60,  label: 'Claude Haiku 3.5',               match: 'haiku-3-5' },
+    'haiku-3':    { in: 0.25,  out: 1.25,  cr: 0.03, cw5m: 0.30,  cw1h: 0.50,  label: 'Claude Haiku 3',                 match: 'haiku-3' },
+    default:      { in: 3.00,  out: 15.00, cr: 0.30, cw5m: 3.75,  cw1h: 6.00,  label: 'Varsayılan (bilinmeyen model)',  match: null },
+  };
+
+  const PRICING_KEY = 'claude-token-dashboard-pricing-v2';
+
+  function loadPricing() {
+    try {
+      const raw = localStorage.getItem(PRICING_KEY);
+      if (!raw) return structuredClone(DEFAULT_PRICING);
+      const saved = JSON.parse(raw);
+      const merged = structuredClone(DEFAULT_PRICING);
+      for (const tier of Object.keys(merged)) {
+        if (saved[tier]) {
+          merged[tier].in   = +saved[tier].in   || 0;
+          merged[tier].out  = +saved[tier].out  || 0;
+          merged[tier].cr   = +saved[tier].cr   || 0;
+          merged[tier].cw5m = +saved[tier].cw5m || 0;
+          merged[tier].cw1h = +saved[tier].cw1h || 0;
+        }
+      }
+      return merged;
+    } catch { return structuredClone(DEFAULT_PRICING); }
+  }
+
+  function savePricing(p) {
+    try { localStorage.setItem(PRICING_KEY, JSON.stringify(p)); } catch {}
+  }
+
+  // Ordered most-specific-first. Handles both new (claude-opus-4-7) and
+  // legacy (claude-3-opus, claude-3-5-sonnet) naming styles.
+  function modelTier(model) {
+    if (!model) return 'default';
+    const m = String(model).toLowerCase().replace(/\./g, '-');
+    // Opus — new naming
+    if (m.includes('opus-4-7')) return 'opus-4-7';
+    if (m.includes('opus-4-6')) return 'opus-4-6';
+    if (m.includes('opus-4-5')) return 'opus-4-5';
+    if (m.includes('opus-4-1')) return 'opus-4-1';
+    // Sonnet — new naming
+    if (m.includes('sonnet-4-6')) return 'sonnet-4-6';
+    if (m.includes('sonnet-4-5')) return 'sonnet-4-5';
+    if (m.includes('sonnet-3-7') || m.includes('3-7-sonnet')) return 'sonnet-3-7';
+    // Haiku — new naming
+    if (m.includes('haiku-4-5')) return 'haiku-4-5';
+    if (m.includes('haiku-3-5') || m.includes('3-5-haiku')) return 'haiku-3-5';
+    // Legacy claude-3-* naming
+    if (m.includes('3-5-sonnet') || m.includes('sonnet-3-5')) return 'sonnet-3-7'; // same tier price
+    if (m.includes('opus-3') || m.includes('3-opus')) return 'opus-3';
+    if (m.includes('haiku-3') || m.includes('3-haiku')) return 'haiku-3';
+    // Generic 4.x fallbacks (no minor version present)
+    if (m.includes('opus-4')) return 'opus-4';
+    if (m.includes('sonnet-4')) return 'sonnet-4';
+    // Very generic — pick latest of family
+    if (m.includes('opus')) return 'opus-4-7';
+    if (m.includes('sonnet')) return 'sonnet-4-6';
+    if (m.includes('haiku')) return 'haiku-4-5';
+    return 'default';
+  }
+
+  function computeCost(tokens, model, pricing) {
+    const p = pricing[modelTier(model)];
+    return (
+      (tokens.input       || 0) / 1e6 * p.in +
+      (tokens.output      || 0) / 1e6 * p.out +
+      (tokens.cacheRead   || 0) / 1e6 * p.cr +
+      (tokens.cacheWrite  || 0) / 1e6 * p.cw5m +
+      (tokens.cacheWrite1h|| 0) / 1e6 * p.cw1h
+    );
+  }
+
+  // ======= STATE =======
+  const state = {
+    events: [],      // { ts(ms), day, projectKey, projectName, sessionId, model, tier, input, output, cacheRead, cacheWrite }
+    pricing: loadPricing(),
+    fileCount: 0,
+    lineCount: 0,
+    parseErrors: 0,
+    view: 'overview',
+    sort: {
+      projects: { key: 'total', dir: 'desc' },
+      sessions: { key: 'last', dir: 'desc' },
+      byDate: { key: 'date', dir: 'desc' },
+    },
+    filter: {
+      projects: '',
+      sessions: '',
+      dateFrom: null,  // YYYY-MM-DD
+      dateTo: null,
+      rangePreset: 'all',
+    },
+    topnMode: 'total',
+    timelineMode: 'total',
+    groupByMode: 'day',
+    storedFiles: null,
+    // Aggregated data (rebuilt when filter changes)
+    agg: null,
+  };
+
+  // ======= UTIL =======
+  const $ = (id) => document.getElementById(id);
+  const $$ = (sel, root = document) => root.querySelectorAll(sel);
+
+  function emptyTokens() { return { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cacheWrite1h: 0, messages: 0 }; }
+  function addTokens(dst, src) {
+    dst.input += src.input;
+    dst.output += src.output;
+    dst.cacheRead += src.cacheRead;
+    dst.cacheWrite += src.cacheWrite;
+    dst.cacheWrite1h += (src.cacheWrite1h || 0);
+    dst.messages += src.messages;
+  }
+  const totalOf = (t) => t.input + t.output + t.cacheRead + t.cacheWrite + (t.cacheWrite1h || 0);
+
+  function fmt(n) {
+    if (!n) return '0';
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return String(n);
+  }
+  const fmtFull = (n) => Math.round(n || 0).toLocaleString('en-US');
+
+  function fmtCost(n) {
+    const v = n || 0;
+    if (v >= 1000) return '$' + v.toFixed(0).toLocaleString();
+    if (v >= 100) return '$' + v.toFixed(2);
+    if (v >= 1) return '$' + v.toFixed(3);
+    if (v >= 0.01) return '$' + v.toFixed(4);
+    if (v > 0) return '$' + v.toFixed(5);
+    return '$0.00';
+  }
+
+  function fmtCostCompact(n) {
+    const v = n || 0;
+    if (v >= 1000) return '$' + (v/1000).toFixed(1) + 'k';
+    if (v >= 100) return '$' + v.toFixed(0);
+    if (v >= 10) return '$' + v.toFixed(1);
+    if (v >= 1) return '$' + v.toFixed(2);
+    if (v >= 0.01) return '$' + v.toFixed(3);
+    if (v > 0) return '<$0.01';
+    return '$0';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function projectNameFromCwd(cwd) {
+    if (!cwd) return '(unknown)';
+    const parts = cwd.replace(/\\/g, '/').split('/').filter(Boolean);
+    return parts[parts.length - 1] || cwd;
+  }
+
+  function sessionFromFilename(name) {
+    const base = name.replace(/\.jsonl$/i, '');
+    const m = base.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    return m ? m[0] : base;
+  }
+
+  function shortSid(sid) {
+    if (!sid || sid === '(unknown)') return sid || '';
+    if (sid.length > 14) return sid.slice(0, 8) + '…' + sid.slice(-4);
+    return sid;
+  }
+
+  function formatDateRel(ts) {
+    if (!ts) return '–';
+    const d = new Date(ts);
+    if (isNaN(d)) return '–';
+    const now = Date.now();
+    const diff = now - d.getTime();
+    if (diff < 60_000) return 'just now';
+    if (diff < 3_600_000) return Math.floor(diff / 60_000) + 'm ago';
+    if (diff < 86_400_000) return Math.floor(diff / 3_600_000) + 'h ago';
+    if (diff < 7 * 86_400_000) return Math.floor(diff / 86_400_000) + 'd ago';
+    return d.toISOString().slice(0, 10);
+  }
+
+  function localDay(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function formatDuration(ms) {
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return s + 's';
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + 'm ' + (s % 60) + 's';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ' + (m % 60) + 'm';
+    const d = Math.floor(h / 24);
+    return d + 'd ' + (h % 24) + 'h';
+  }
+
+  // ======= PARSING =======
+  function processLine(line, fileSessionId, fileCwdHint) {
+    let obj;
+    try { obj = JSON.parse(line); }
+    catch (e) { state.parseErrors++; return; }
+
+    const usage = obj?.message?.usage || obj?.usage;
+    if (!usage) return;
+
+    const cwd = obj.cwd || fileCwdHint || '(unknown)';
+    const projectName = projectNameFromCwd(cwd);
+    const sessionId = obj.sessionId || fileSessionId || '(unknown)';
+    const model = obj?.message?.model || null;
+    const tsRaw = obj.timestamp ? new Date(obj.timestamp) : null;
+    const ts = tsRaw && !isNaN(tsRaw) ? tsRaw.getTime() : null;
+
+    const input = usage.input_tokens || 0;
+    const output = usage.output_tokens || 0;
+    const cacheRead = usage.cache_read_input_tokens || 0;
+    // Anthropic usage may split cache creation by TTL. Prefer the breakdown when present.
+    const cc = usage.cache_creation || {};
+    const cw5m = cc.ephemeral_5m_input_tokens;
+    const cw1h = cc.ephemeral_1h_input_tokens;
+    let cacheWrite, cacheWrite1h;
+    if (typeof cw5m === 'number' || typeof cw1h === 'number') {
+      cacheWrite = cw5m || 0;
+      cacheWrite1h = cw1h || 0;
+    } else {
+      cacheWrite = usage.cache_creation_input_tokens || 0;
+      cacheWrite1h = 0;
+    }
+
+    if (input + output + cacheRead + cacheWrite + cacheWrite1h === 0) return;
+
+    state.events.push({
+      ts,
+      day: ts ? localDay(new Date(ts)) : null,
+      projectKey: cwd,
+      projectName,
+      sessionId,
+      model,
+      tier: modelTier(model),
+      input, output, cacheRead, cacheWrite, cacheWrite1h,
+    });
+  }
+
+  async function processFile(file) {
+    const text = await file.text();
+    state.fileCount++;
+    const sessionId = sessionFromFilename(file.name);
+    let cwdHint = null;
+    const rel = file.webkitRelativePath || '';
+    if (rel) {
+      const parts = rel.split('/');
+      for (let i = parts.length - 2; i >= 0; i--) {
+        if (parts[i] && parts[i] !== 'projects' && parts[i].includes('-')) {
+          cwdHint = '/' + parts[i].replace(/^-/, '').replace(/-/g, '/');
+          break;
+        }
+      }
+    }
+    const lines = text.split(/\r?\n/);
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      state.lineCount++;
+      processLine(line, sessionId, cwdHint);
+    }
+  }
+
+  async function ingest(files) {
+    const jsonlFiles = Array.from(files).filter(f => /\.jsonl$/i.test(f.name));
+    if (!jsonlFiles.length) {
+      setToast('<span class="err">.jsonl dosyası bulunamadı.</span>');
+      return;
+    }
+    state.storedFiles = jsonlFiles;
+    resetData();
+    setToast(`${jsonlFiles.length} dosya ayrıştırılıyor…`);
+
+    for (const f of jsonlFiles) {
+      try { await processFile(f); }
+      catch (e) { console.error(e); state.parseErrors++; }
+    }
+
+    $('dropzone').classList.add('compact');
+    $('filter-bar').style.display = 'flex';
+
+    // Auto-set filter range to data range
+    const withTs = state.events.filter(e => e.ts);
+    if (withTs.length) {
+      const minTs = Math.min(...withTs.map(e => e.ts));
+      const maxTs = Math.max(...withTs.map(e => e.ts));
+      $('date-from').min = localDay(new Date(minTs));
+      $('date-from').max = localDay(new Date(maxTs));
+      $('date-to').min = localDay(new Date(minTs));
+      $('date-to').max = localDay(new Date(maxTs));
+    }
+
+    rebuild();
+
+    setToast(
+      `<span class="ok">yüklendi</span> ${state.fileCount} dosya, ` +
+      `${state.lineCount.toLocaleString()} satır, ` +
+      `${state.events.length} kullanım kaydı` +
+      (state.parseErrors ? ` · <span class="err">${state.parseErrors} ayrıştırma hatası</span>` : '')
+    );
+  }
+
+  function resetData() {
+    state.events = [];
+    state.fileCount = 0;
+    state.lineCount = 0;
+    state.parseErrors = 0;
+    state.agg = null;
+  }
+
+  function setToast(html) { $('toast').innerHTML = html; }
+
+  // ======= AGGREGATION (filter-aware) =======
+  function applyDateFilter(events) {
+    const { dateFrom, dateTo } = state.filter;
+    if (!dateFrom && !dateTo) return events;
+    return events.filter(e => {
+      if (!e.day) return !dateFrom && !dateTo;
+      if (dateFrom && e.day < dateFrom) return false;
+      if (dateTo && e.day > dateTo) return false;
+      return true;
+    });
+  }
+
+  function rebuild() {
+    const events = applyDateFilter(state.events);
+    const pricing = state.pricing;
+
+    const projects = new Map();
+    const sessions = []; // flat
+    const daily = new Map();
+    const hourly = Array.from({ length: 24 }, () => ({ ...emptyTokens(), cost: 0 }));
+    const byModel = new Map();
+
+    let totalCost = 0;
+    let totalTokens = emptyTokens();
+    const costByType = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cacheWrite1h: 0 };
+
+    for (const e of events) {
+      const t = {
+        input: e.input, output: e.output,
+        cacheRead: e.cacheRead, cacheWrite: e.cacheWrite,
+        cacheWrite1h: e.cacheWrite1h || 0,
+        messages: 1,
+      };
+      const cost = computeCost(t, e.model, pricing);
+      const pr = pricing[modelTier(e.model)];
+      costByType.input        += (t.input        || 0) / 1e6 * pr.in;
+      costByType.output       += (t.output       || 0) / 1e6 * pr.out;
+      costByType.cacheRead    += (t.cacheRead    || 0) / 1e6 * pr.cr;
+      costByType.cacheWrite   += (t.cacheWrite   || 0) / 1e6 * pr.cw5m;
+      costByType.cacheWrite1h += (t.cacheWrite1h || 0) / 1e6 * pr.cw1h;
+
+      // Totals
+      addTokens(totalTokens, t);
+      totalCost += cost;
+
+      // Project
+      let p = projects.get(e.projectKey);
+      if (!p) {
+        p = {
+          key: e.projectKey,
+          name: e.projectName,
+          cwd: e.projectKey,
+          totals: emptyTokens(), cost: 0,
+          sessions: new Map(),
+          firstTs: null, lastTs: null,
+          models: new Set(),
+        };
+        projects.set(e.projectKey, p);
+      }
+      addTokens(p.totals, t);
+      p.cost += cost;
+      if (e.model) p.models.add(e.model);
+      if (e.ts) {
+        if (!p.firstTs || e.ts < p.firstTs) p.firstTs = e.ts;
+        if (!p.lastTs || e.ts > p.lastTs) p.lastTs = e.ts;
+      }
+
+      // Session
+      let s = p.sessions.get(e.sessionId);
+      if (!s) {
+        s = {
+          id: e.sessionId,
+          project: e.projectName,
+          projectKey: e.projectKey,
+          totals: emptyTokens(), cost: 0,
+          firstTs: null, lastTs: null,
+          models: new Set(),
+        };
+        p.sessions.set(e.sessionId, s);
+      }
+      addTokens(s.totals, t);
+      s.cost += cost;
+      if (e.model) s.models.add(e.model);
+      if (e.ts) {
+        if (!s.firstTs || e.ts < s.firstTs) s.firstTs = e.ts;
+        if (!s.lastTs || e.ts > s.lastTs) s.lastTs = e.ts;
+      }
+
+      // Daily
+      if (e.day) {
+        let bucket = daily.get(e.day);
+        if (!bucket) {
+          bucket = { ...emptyTokens(), cost: 0, sessions: new Set(), projects: new Set() };
+          daily.set(e.day, bucket);
+        }
+        addTokens(bucket, t);
+        bucket.cost += cost;
+        bucket.sessions.add(e.sessionId);
+        bucket.projects.add(e.projectKey);
+      }
+
+      // Hourly
+      if (e.ts) {
+        const h = new Date(e.ts).getHours();
+        addTokens(hourly[h], t);
+        hourly[h].cost += cost;
+      }
+
+      // Model
+      let mb = byModel.get(e.tier);
+      if (!mb) {
+        mb = { tier: e.tier, models: new Set(), totals: emptyTokens(), cost: 0 };
+        byModel.set(e.tier, mb);
+      }
+      if (e.model) mb.models.add(e.model);
+      addTokens(mb.totals, t);
+      mb.cost += cost;
+    }
+
+    for (const p of projects.values()) {
+      for (const s of p.sessions.values()) sessions.push(s);
+    }
+
+    state.agg = {
+      projects, sessions, daily, hourly, byModel,
+      totals: totalTokens, cost: totalCost, costByType,
+    };
+
+    render();
+  }
+
+  // ======= RENDER: CARDS =======
+  function renderCards() {
+    const { totals: tot, cost, projects, sessions, costByType: cbt } = state.agg;
+    const total = totalOf(tot);
+    const pct = (v) => total ? ((v / total) * 100).toFixed(1) + '%' : '—';
+    const cwTotal = tot.cacheWrite + (tot.cacheWrite1h || 0);
+    const cwCostTotal = cbt.cacheWrite + cbt.cacheWrite1h;
+
+    $('cards').innerHTML = `
+      <div class="card cost">
+        <div class="label">tahmini maliyet</div>
+        <div class="val">${fmtCost(cost)}</div>
+        <div class="sub"><span>güncel fiyatlandırmaya göre</span></div>
+      </div>
+      <div class="card total">
+        <div class="label">toplam token</div>
+        <div class="val">${fmt(total)}</div>
+        <div class="sub"><span>${fmtFull(total)}</span><span class="card-cost">${fmtCost(cost)}</span></div>
+      </div>
+      <div class="card input">
+        <div class="label">giriş</div>
+        <div class="val">${fmt(tot.input)}</div>
+        <div class="sub"><span>${fmtFull(tot.input)}</span><span class="pct">${pct(tot.input)}</span></div>
+        <div class="sub sub-cost"><span>maliyet</span><span class="card-cost">${fmtCost(cbt.input)}</span></div>
+      </div>
+      <div class="card output">
+        <div class="label">çıkış</div>
+        <div class="val">${fmt(tot.output)}</div>
+        <div class="sub"><span>${fmtFull(tot.output)}</span><span class="pct">${pct(tot.output)}</span></div>
+        <div class="sub sub-cost"><span>maliyet</span><span class="card-cost">${fmtCost(cbt.output)}</span></div>
+      </div>
+      <div class="card cache-read">
+        <div class="label">önbellek okuma</div>
+        <div class="val">${fmt(tot.cacheRead)}</div>
+        <div class="sub"><span>${fmtFull(tot.cacheRead)}</span><span class="pct">${pct(tot.cacheRead)}</span></div>
+        <div class="sub sub-cost"><span>maliyet</span><span class="card-cost">${fmtCost(cbt.cacheRead)}</span></div>
+      </div>
+      <div class="card cache-write">
+        <div class="label">önbellek yazma</div>
+        <div class="val">${fmt(cwTotal)}</div>
+        <div class="sub"><span>${fmtFull(cwTotal)}</span><span class="pct">${pct(cwTotal)}</span></div>
+        <div class="sub sub-cost"><span>maliyet${(tot.cacheWrite1h || 0) ? ' (5dk + 1sa)' : ''}</span><span class="card-cost">${fmtCost(cwCostTotal)}</span></div>
+      </div>
+      <div class="card">
+        <div class="label">etkinlik</div>
+        <div class="val">${projects.size}p / ${sessions.length}o</div>
+        <div class="sub"><span>${fmtFull(tot.messages)} mesaj</span></div>
+      </div>
+    `;
+
+    $('sidebar-stats').innerHTML = `
+      <span class="k">dosya</span><span class="v">${state.fileCount}</span><br>
+      <span class="k">proje</span><span class="v">${projects.size}</span><br>
+      <span class="k">oturum</span><span class="v">${sessions.length}</span><br>
+      <span class="k">mesaj</span><span class="v">${fmtFull(tot.messages)}</span><br>
+      <span class="k">tahmini maliyet</span><span class="cost-v">${fmtCost(cost)}</span>
+    `;
+  }
+
+  // ======= RENDER: DONUT =======
+  function renderDonut() {
+    const tot = state.agg.totals;
+    const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const segments = [
+      { key: 'input', label: 'giriş', value: tot.input, color: css('--input') },
+      { key: 'output', label: 'çıkış', value: tot.output, color: css('--output') },
+      { key: 'cacheRead', label: 'önbellek-okuma', value: tot.cacheRead, color: css('--cache') },
+      { key: 'cacheWrite', label: 'önbellek-yazma', value: tot.cacheWrite, color: css('--cache-write') },
+    ];
+    const sum = segments.reduce((a, s) => a + s.value, 0) || 1;
+    const size = 160, r = 68, rInner = 44, cx = size/2, cy = size/2;
+
+    let cumAngle = -Math.PI/2;
+    const paths = segments.map(s => {
+      const frac = s.value / sum;
+      if (frac <= 0) return '';
+      const ang = frac * Math.PI * 2;
+      const a1 = cumAngle, a2 = cumAngle + ang;
+      cumAngle = a2;
+      const large = ang > Math.PI ? 1 : 0;
+      const x1 = cx + Math.cos(a1) * r, y1 = cy + Math.sin(a1) * r;
+      const x2 = cx + Math.cos(a2) * r, y2 = cy + Math.sin(a2) * r;
+      const xi1 = cx + Math.cos(a2) * rInner, yi1 = cy + Math.sin(a2) * rInner;
+      const xi2 = cx + Math.cos(a1) * rInner, yi2 = cy + Math.sin(a1) * rInner;
+      const d = `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${xi1} ${yi1} A ${rInner} ${rInner} 0 ${large} 0 ${xi2} ${yi2} Z`;
+      return `<path d="${d}" fill="${s.color}" opacity="0.92"><title>${s.label}: ${fmtFull(s.value)} (${((s.value/sum)*100).toFixed(1)}%)</title></path>`;
+    }).join('');
+
+    $('donut').innerHTML = `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        ${paths}
+        <text x="${cx}" y="${cy-4}" text-anchor="middle" fill="var(--fg)" font-size="16" font-family="inherit" font-weight="500">${fmt(sum)}</text>
+        <text x="${cx}" y="${cy+12}" text-anchor="middle" fill="var(--fg-mute)" font-size="9" font-family="inherit">TOKEN</text>
+      </svg>
+    `;
+
+    $('donut-legend').innerHTML = segments.map(s => `
+      <div class="donut-item">
+        <div class="donut-swatch" style="background:${s.color}"></div>
+        <div class="nm">${s.label}</div>
+        <div class="vl">${fmt(s.value)}</div>
+        <div class="pc">${((s.value/sum)*100).toFixed(1)}%</div>
+      </div>
+    `).join('');
+  }
+
+  // ======= RENDER: MODEL BREAKDOWN =======
+  function renderModelBreakdown() {
+    const list = [...state.agg.byModel.values()].sort((a, b) => b.cost - a.cost);
+    const max = list.reduce((m, x) => Math.max(m, x.cost), 0) || 1;
+    if (!list.length) { $('model-breakdown').innerHTML = '<div class="empty">veri yok</div>'; return; }
+
+    $('model-breakdown').innerHTML = list.map(m => {
+      const pct = (m.cost / max) * 100;
+      const p = state.pricing[m.tier] || state.pricing.default;
+      const t = m.totals;
+      const modelNames = [...m.models].join(', ') || '(model bilgisi yok)';
+
+      // Per-line cost contributions
+      const cIn   = (t.input        || 0) / 1e6 * p.in;
+      const cOut  = (t.output       || 0) / 1e6 * p.out;
+      const cR    = (t.cacheRead    || 0) / 1e6 * p.cr;
+      const cW5   = (t.cacheWrite   || 0) / 1e6 * p.cw5m;
+      const cW1   = (t.cacheWrite1h || 0) / 1e6 * p.cw1h;
+
+      const row = (label, qty, rate, sub) => `
+        <div class="mb-row">
+          <span class="mb-k">${label}</span>
+          <span class="mb-q">${fmtFull(qty)}</span>
+          <span class="mb-r">@ $${rate.toFixed(2)}/M</span>
+          <span class="mb-s">${fmtCost(sub)}</span>
+        </div>`;
+
+      return `
+        <div class="mb-card">
+          <div class="mb-head">
+            <div>
+              <div class="mb-title">${escapeHtml(p.label || m.tier)}</div>
+              <div class="mb-sub" title="${escapeHtml(modelNames)}">${escapeHtml(modelNames.length > 64 ? modelNames.slice(0,62)+'…' : modelNames)}</div>
+            </div>
+            <span class="cost-badge">${fmtCost(m.cost)}</span>
+          </div>
+          <div class="chart-bar-wrap" style="width:100%; height:6px; margin:6px 0 10px">
+            <div style="width:${pct}%; background:var(--cost); height:100%"></div>
+          </div>
+          <div class="mb-rows">
+            ${row('giriş',           t.input        || 0, p.in,   cIn)}
+            ${row('çıkış',           t.output       || 0, p.out,  cOut)}
+            ${row('önbellek okuma',  t.cacheRead    || 0, p.cr,   cR)}
+            ${(t.cacheWrite || 0)   ? row('önbellek 5dk', t.cacheWrite   || 0, p.cw5m, cW5) : ''}
+            ${(t.cacheWrite1h || 0) ? row('önbellek 1sa', t.cacheWrite1h || 0, p.cw1h, cW1) : ''}
+          </div>
+          <div class="mb-foot">
+            <span>${fmtFull(totalOf(t))} token · ${fmtFull(t.messages)} mesaj</span>
+            <span>toplam ${fmtCost(m.cost)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ======= RENDER: TOP-N =======
+  function renderTopProjects() {
+    const mode = state.topnMode;
+    const getVal = (p) => {
+      if (mode === 'cost') return p.cost;
+      if (mode === 'total') return totalOf(p.totals);
+      return p.totals[mode];
+    };
+    const list = [...state.agg.projects.values()].sort((a, b) => getVal(b) - getVal(a)).slice(0, 8);
+    const max = list.reduce((m, p) => Math.max(m, getVal(p)), 0) || 1;
+
+    $('topn-projects').innerHTML = list.map((p, i) => {
+      const v = getVal(p);
+      const pct = (v / max) * 100;
+      const disp = mode === 'cost' ? fmtCost(v) : fmt(v);
+      return `
+        <div class="topn-item" data-action="open-project" data-key="${escapeHtml(p.key)}">
+          <div class="topn-rank">${i+1}.</div>
+          <div class="topn-name" title="${escapeHtml(p.cwd)}">
+            ${escapeHtml(p.name)}
+            <span class="meta">${p.sessions.size}o · ${fmtFull(p.totals.messages)}m</span>
+          </div>
+          <div class="topn-val">
+            <span class="mini-bar"><div style="width:${pct}%"></div></span>
+            ${disp}
+            <div class="cost-val">${mode === 'cost' ? fmt(totalOf(p.totals)) + ' tok' : fmtCost(p.cost)}</div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="empty">proje yok</div>';
+  }
+
+  function renderTopSessions() {
+    const list = [...state.agg.sessions].sort((a, b) => b.cost - a.cost).slice(0, 8);
+    const max = list.reduce((m, s) => Math.max(m, s.cost), 0) || 1;
+    $('topn-sessions').innerHTML = list.map((s, i) => {
+      const pct = (s.cost / max) * 100;
+      return `
+        <div class="topn-item" data-action="open-session" data-sid="${escapeHtml(s.id)}" data-key="${escapeHtml(s.projectKey)}">
+          <div class="topn-rank">${i+1}.</div>
+          <div class="topn-name">
+            ${escapeHtml(shortSid(s.id))}
+            <span class="meta">${escapeHtml(s.project)} · ${fmtFull(s.totals.messages)}m</span>
+          </div>
+          <div class="topn-val">
+            <span class="mini-bar"><div style="width:${pct}%"></div></span>
+            ${fmtCost(s.cost)}
+            <div class="cost-val">${fmt(totalOf(s.totals))} tok</div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="empty">oturum yok</div>';
+  }
+
+  // ======= RENDER: PROJECT CHART =======
+  function renderChart() {
+    const projects = [...state.agg.projects.values()].sort((a, b) => totalOf(b.totals) - totalOf(a.totals));
+    const max = projects.reduce((m, p) => Math.max(m, totalOf(p.totals)), 0) || 1;
+
+    const rows = projects.map(p => {
+      const t = p.totals;
+      const tot = totalOf(t);
+      const w = (tot / max) * 100;
+      const seg = (val) => tot ? (val / tot * 100) : 0;
+      return `
+        <div class="chart-row">
+          <div class="chart-label" title="${escapeHtml(p.cwd)}">${escapeHtml(p.name)}</div>
+          <div class="chart-bar-wrap" style="width:${w}%; min-width: 40px">
+            ${t.input    ? `<div class="chart-seg input"    style="width:${seg(t.input)}%"    title="giriş: ${fmtFull(t.input)}"></div>` : ''}
+            ${t.output   ? `<div class="chart-seg output"   style="width:${seg(t.output)}%"   title="çıkış: ${fmtFull(t.output)}"></div>` : ''}
+            ${t.cacheRead? `<div class="chart-seg cache"    style="width:${seg(t.cacheRead)}%" title="önbellek-okuma: ${fmtFull(t.cacheRead)}"></div>` : ''}
+            ${t.cacheWrite?`<div class="chart-seg cache-write" style="width:${seg(t.cacheWrite)}%" title="önbellek-yazma: ${fmtFull(t.cacheWrite)}"></div>` : ''}
+          </div>
+          <div class="chart-total">${fmt(tot)} <span class="cost">${fmtCostCompact(p.cost)}</span></div>
+        </div>
+      `;
+    }).join('');
+
+    $('chart').innerHTML = rows || '<div class="empty">veri yok</div>';
+  }
+
+  // ======= RENDER: PROJECT TABLE =======
+  function renderProjectTable() {
+    const s = state.sort.projects;
+    const filter = state.filter.projects.toLowerCase();
+    const rowsData = [...state.agg.projects.values()]
+      .filter(p => !filter || p.name.toLowerCase().includes(filter) || p.cwd.toLowerCase().includes(filter))
+      .sort((a, b) => {
+        let av, bv;
+        switch (s.key) {
+          case 'name': av = a.name; bv = b.name; break;
+          case 'cost': av = a.cost; bv = b.cost; break;
+          case 'total': av = totalOf(a.totals); bv = totalOf(b.totals); break;
+          case 'sessions': av = a.sessions.size; bv = b.sessions.size; break;
+          case 'messages': av = a.totals.messages; bv = b.totals.messages; break;
+          default: av = a.totals[s.key]; bv = b.totals[s.key];
+        }
+        if (av < bv) return s.dir === 'asc' ? -1 : 1;
+        if (av > bv) return s.dir === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+    const tbody = $('tbody');
+    const rows = rowsData.map((p, i) => {
+      const t = p.totals;
+      const sessions = [...p.sessions.values()].sort((a, b) => b.cost - a.cost);
+      const sessionRows = sessions.map(ss => {
+        const st = ss.totals;
+        return `
+          <tr class="session-row" data-proj="${i}">
+            <td><span class="sid-prefix">└─ </span><span class="sid-link" data-action="open-session" data-sid="${escapeHtml(ss.id)}" data-key="${escapeHtml(ss.projectKey)}">${escapeHtml(shortSid(ss.id))}</span></td>
+            <td class="cost">${fmtCost(ss.cost)}</td>
+            <td class="num">${fmtFull(totalOf(st))}</td>
+            <td class="num">${fmtFull(st.input)}</td>
+            <td class="num">${fmtFull(st.output)}</td>
+            <td class="num">${fmtFull(st.cacheRead)}</td>
+            <td class="num">${fmtFull(st.cacheWrite)}</td>
+            <td class="num">–</td>
+            <td class="num">${fmtFull(st.messages)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <tr class="proj-row clickable" data-proj="${i}">
+          <td class="proj" title="${escapeHtml(p.cwd)}"><span class="caret">▶</span> ${escapeHtml(p.name)}</td>
+          <td class="cost">${fmtCost(p.cost)}</td>
+          <td class="num">${fmtFull(totalOf(t))}</td>
+          <td class="num">${fmtFull(t.input)}</td>
+          <td class="num">${fmtFull(t.output)}</td>
+          <td class="num">${fmtFull(t.cacheRead)}</td>
+          <td class="num">${fmtFull(t.cacheWrite)}</td>
+          <td class="num">${p.sessions.size}</td>
+          <td class="num">${fmtFull(t.messages)}</td>
+        </tr>
+        ${sessionRows}
+      `;
+    }).join('');
+
+    tbody.innerHTML = rows || `<tr><td colspan="9" class="empty">no matches</td></tr>`;
+    updateSortHeaders('#details', s);
+  }
+
+  // ======= RENDER: SESSIONS TABLE =======
+  function renderSessionsTable() {
+    const s = state.sort.sessions;
+    const filter = state.filter.sessions.toLowerCase();
+    const rowsData = state.agg.sessions
+      .filter(ss => !filter || ss.id.toLowerCase().includes(filter) || ss.project.toLowerCase().includes(filter))
+      .sort((a, b) => {
+        let av, bv;
+        switch (s.key) {
+          case 'sid': av = a.id; bv = b.id; break;
+          case 'project': av = a.project; bv = b.project; break;
+          case 'cost': av = a.cost; bv = b.cost; break;
+          case 'total': av = totalOf(a.totals); bv = totalOf(b.totals); break;
+          case 'messages': av = a.totals.messages; bv = b.totals.messages; break;
+          case 'last': av = a.lastTs || 0; bv = b.lastTs || 0; break;
+          default: av = a.totals[s.key]; bv = b.totals[s.key];
+        }
+        if (av < bv) return s.dir === 'asc' ? -1 : 1;
+        if (av > bv) return s.dir === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+    const tbody = $('sessions-tbody');
+    const rows = rowsData.slice(0, 500).map(ss => {
+      const st = ss.totals;
+      return `
+        <tr class="clickable" data-action="open-session" data-sid="${escapeHtml(ss.id)}" data-key="${escapeHtml(ss.projectKey)}">
+          <td title="${escapeHtml(ss.id)}">${escapeHtml(shortSid(ss.id))}</td>
+          <td>${escapeHtml(ss.project)}</td>
+          <td class="cost">${fmtCost(ss.cost)}</td>
+          <td class="num">${fmtFull(totalOf(st))}</td>
+          <td class="num">${fmtFull(st.input)}</td>
+          <td class="num">${fmtFull(st.output)}</td>
+          <td class="num">${fmtFull(st.cacheRead)}</td>
+          <td class="num">${fmtFull(st.cacheWrite)}</td>
+          <td class="num">${fmtFull(st.messages)}</td>
+          <td>${formatDateRel(ss.lastTs)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = rows || `<tr><td colspan="10" class="empty">no matches</td></tr>`;
+    if (rowsData.length > 500) {
+      tbody.innerHTML += `<tr><td colspan="10" class="empty">… and ${rowsData.length - 500} more (narrow your filter)</td></tr>`;
+    }
+    updateSortHeaders('#sessions-table', s);
+  }
+
+  function updateSortHeaders(tableSel, s) {
+    $$(`${tableSel} thead th`).forEach(th => {
+      th.classList.remove('sorted', 'asc');
+      if (th.getAttribute('data-sort') === s.key) {
+        th.classList.add('sorted');
+        if (s.dir === 'asc') th.classList.add('asc');
+      }
+    });
+  }
+
+  // ======= RENDER: TIMELINE =======
+  function renderTimeline() {
+    const svg = $('timeline-svg');
+    const days = [...state.agg.daily.entries()].sort(([a], [b]) => a < b ? -1 : 1);
+    if (!days.length) {
+      svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="var(--fg-mute)" font-size="11" font-family="inherit">no timestamp data</text>';
+      return;
+    }
+
+    // Fill gaps
+    const [firstDay] = days[0];
+    const [lastDay] = days[days.length - 1];
+    const d0 = new Date(firstDay + 'T12:00:00');
+    const d1 = new Date(lastDay + 'T12:00:00');
+    const filled = [];
+    for (let d = new Date(d0); d <= d1; d.setDate(d.getDate() + 1)) {
+      const key = localDay(d);
+      const existing = state.agg.daily.get(key);
+      filled.push([key, existing || { ...emptyTokens(), cost: 0, sessions: new Set(), projects: new Set() }]);
+    }
+
+    const W = svg.clientWidth || 800;
+    const H = 240;
+    const padL = 60, padR = 16, padT = 16, padB = 28;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+
+    const x = (i) => padL + (filled.length === 1 ? innerW/2 : (i / (filled.length - 1)) * innerW);
+
+    const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const palette = {
+      input: css('--input'),
+      output: css('--output'),
+      cacheRead: css('--cache'),
+      cacheWrite: css('--cache-write'),
+      total: css('--total'),
+      cost: css('--cost'),
+    };
+
+    let series, yLabel, strokeKey, paletteKey, fmtY;
+    if (state.timelineMode === 'cost') {
+      series = filled.map(([, v]) => v.cost);
+      yLabel = '$';
+      strokeKey = palette.cost;
+      paletteKey = 'cost';
+      fmtY = (v) => fmtCostCompact(v);
+    } else if (state.timelineMode === 'split') {
+      series = null;
+      fmtY = (v) => fmt(Math.round(v));
+    } else {
+      series = filled.map(([, v]) => totalOf(v));
+      strokeKey = palette.total;
+      paletteKey = 'total';
+      fmtY = (v) => fmt(Math.round(v));
+    }
+
+    let max;
+    if (state.timelineMode === 'split') {
+      max = Math.max(1, ...filled.map(([, v]) => Math.max(v.input, v.output, v.cacheRead, v.cacheWrite)));
+    } else {
+      max = Math.max(1, ...series);
+    }
+    const yFor = (v) => padT + innerH - (v / max) * innerH;
+
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    let html = '';
+
+    html += '<g class="tl-grid">';
+    for (let i = 0; i <= 4; i++) {
+      const yy = padT + (innerH / 4) * i;
+      html += `<line x1="${padL}" x2="${W-padR}" y1="${yy}" y2="${yy}"/>`;
+    }
+    html += '</g>';
+
+    html += '<g class="tl-axis">';
+    for (let i = 0; i <= 4; i++) {
+      const yy = padT + (innerH / 4) * i;
+      const vv = max * (1 - i/4);
+      html += `<text x="${padL-6}" y="${yy+3}" text-anchor="end">${fmtY(vv)}</text>`;
+    }
+    const ticks = Math.min(filled.length, 7);
+    for (let i = 0; i < ticks; i++) {
+      const idx = Math.round((i / (ticks - 1 || 1)) * (filled.length - 1));
+      const xx = x(idx);
+      html += `<text x="${xx}" y="${H-8}" text-anchor="middle">${filled[idx][0].slice(5)}</text>`;
+    }
+    html += '</g>';
+
+    const pathFor = (values) => values.map((v, i) => {
+      return `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${yFor(v).toFixed(1)}`;
+    }).join(' ');
+
+    const areaFor = (values) => {
+      const pts = values.map((v, i) => `${x(i).toFixed(1)} ${yFor(v).toFixed(1)}`);
+      return `M ${x(0).toFixed(1)} ${(padT+innerH).toFixed(1)} L ${pts.join(' L ')} L ${x(values.length-1).toFixed(1)} ${(padT+innerH).toFixed(1)} Z`;
+    };
+
+    if (state.timelineMode === 'split') {
+      for (const k of ['input', 'output', 'cacheRead', 'cacheWrite']) {
+        const vals = filled.map(([, v]) => v[k]);
+        html += `<path class="tl-series" d="${pathFor(vals)}" stroke="${palette[k]}" opacity="0.85"/>`;
+      }
+    } else {
+      html += `<path d="${areaFor(series)}" fill="${strokeKey}" opacity="0.12"/>`;
+      html += `<path class="tl-series" d="${pathFor(series)}" stroke="${strokeKey}" stroke-width="1.8"/>`;
+
+      filled.forEach(([, v], i) => {
+        const val = state.timelineMode === 'cost' ? v.cost : totalOf(v);
+        if (val === 0 && filled.length > 20) return;
+        html += `<circle cx="${x(i)}" cy="${yFor(val)}" r="2.5" fill="${strokeKey}" pointer-events="none"/>`;
+      });
+    }
+
+    // Hover targets
+    html += '<g>';
+    const bw = innerW / filled.length;
+    filled.forEach((_, i) => {
+      const xx = x(i);
+      html += `<rect x="${xx - bw/2}" y="${padT}" width="${bw}" height="${innerH}" fill="transparent" data-day-idx="${i}"/>`;
+    });
+    html += '</g>';
+
+    svg.innerHTML = html;
+
+    const tooltip = $('tl-tooltip');
+    svg.addEventListener('mousemove', (e) => {
+      const target = e.target;
+      const idx = target.getAttribute && target.getAttribute('data-day-idx');
+      if (idx == null) { tooltip.classList.remove('show'); return; }
+      const [day, v] = filled[+idx];
+      tooltip.innerHTML = `
+        <div class="d">${day}</div>
+        <div class="row"><span class="k">maliyet</span><span style="color:${palette.cost}">${fmtCost(v.cost)}</span></div>
+        <div class="row"><span class="k">toplam</span><span>${fmtFull(totalOf(v))}</span></div>
+        <div class="row"><span class="k" style="color:${palette.input}">giriş</span><span>${fmtFull(v.input)}</span></div>
+        <div class="row"><span class="k" style="color:${palette.output}">çıkış</span><span>${fmtFull(v.output)}</span></div>
+        <div class="row"><span class="k" style="color:${palette.cacheRead}">önb-r</span><span>${fmtFull(v.cacheRead)}</span></div>
+        <div class="row"><span class="k" style="color:${palette.cacheWrite}">önb-w</span><span>${fmtFull(v.cacheWrite)}</span></div>
+      `;
+      tooltip.classList.add('show');
+      const parentRect = svg.parentElement.getBoundingClientRect();
+      const left = e.clientX - parentRect.left + 12;
+      const top = e.clientY - parentRect.top + 12;
+      tooltip.style.left = Math.min(left, parentRect.width - 180) + 'px';
+      tooltip.style.top = top + 'px';
+    });
+    svg.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+
+    renderTopDays();
+    renderHourChart();
+  }
+
+  function renderTopDays() {
+    const days = [...state.agg.daily.entries()].map(([k, v]) => ({ day: k, v, total: totalOf(v) }))
+      .sort((a, b) => b.v.cost - a.v.cost).slice(0, 8);
+    const max = days.reduce((m, d) => Math.max(m, d.v.cost), 0) || 1;
+    $('top-days').innerHTML = days.map((d, i) => {
+      const pct = (d.v.cost / max) * 100;
+      return `
+        <div class="topn-item" data-action="filter-day" data-day="${d.day}">
+          <div class="topn-rank">${i+1}.</div>
+          <div class="topn-name">${d.day} <span class="meta">${fmtFull(d.v.messages)} mesaj</span></div>
+          <div class="topn-val">
+            <span class="mini-bar"><div style="width:${pct}%"></div></span>
+            ${fmtCost(d.v.cost)}
+            <div class="cost-val">${fmt(d.total)} tok</div>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="empty">zaman damgası verisi yok</div>';
+  }
+
+  function renderHourChart() {
+    const svg = $('hour-svg');
+    const data = state.agg.hourly.map(v => totalOf(v));
+    const max = Math.max(1, ...data);
+    const W = svg.clientWidth || 600, H = 180;
+    const padL = 36, padR = 12, padT = 12, padB = 24;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const bw = innerW / 24;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    let html = '';
+    html += '<g class="tl-grid">';
+    for (let i = 0; i <= 4; i++) {
+      const yy = padT + (innerH / 4) * i;
+      html += `<line x1="${padL}" x2="${W-padR}" y1="${yy}" y2="${yy}"/>`;
+    }
+    html += '</g>';
+    html += '<g class="tl-axis">';
+    for (let i = 0; i <= 4; i++) {
+      const yy = padT + (innerH / 4) * i;
+      const vv = max * (1 - i/4);
+      html += `<text x="${padL-6}" y="${yy+3}" text-anchor="end">${fmt(Math.round(vv))}</text>`;
+    }
+    for (let h = 0; h < 24; h += 3) {
+      html += `<text x="${padL + h*bw + bw/2}" y="${H-8}" text-anchor="middle">${String(h).padStart(2,'0')}</text>`;
+    }
+    html += '</g>';
+    data.forEach((v, h) => {
+      const hh = (v / max) * innerH;
+      const xx = padL + h * bw + 1;
+      const yy = padT + innerH - hh;
+      const cost = state.agg.hourly[h].cost;
+      html += `<rect x="${xx}" y="${yy}" width="${bw-2}" height="${hh}" fill="${color}" opacity="0.8"><title>${h}:00 — ${fmtFull(v)} token · ${fmtCost(cost)}</title></rect>`;
+    });
+    svg.innerHTML = html;
+  }
+
+  // ======= RENDER: BY DATE =======
+  function renderByDate() {
+    const rows = groupedByDate();
+    const s = state.sort.byDate;
+    rows.sort((a, b) => {
+      let av, bv;
+      switch (s.key) {
+        case 'date': av = a.date; bv = b.date; break;
+        case 'cost': av = a.cost; bv = b.cost; break;
+        case 'total': av = a.total; bv = b.total; break;
+        case 'messages': av = a.messages; bv = b.messages; break;
+        case 'sessions': av = a.sessions; bv = b.sessions; break;
+        case 'projects': av = a.projects; bv = b.projects; break;
+        default: av = a[s.key]; bv = b[s.key];
+      }
+      if (av < bv) return s.dir === 'asc' ? -1 : 1;
+      if (av > bv) return s.dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    const tbody = $('by-date-tbody');
+    const maxCost = rows.reduce((m, r) => Math.max(m, r.cost), 0) || 1;
+
+    tbody.innerHTML = rows.map(r => {
+      const pct = (r.cost / maxCost) * 100;
+      return `
+        <tr class="clickable" data-action="filter-day" data-day="${r.date}" data-end="${r.dateEnd || ''}">
+          <td><span class="mini-bar"><div style="width:${pct}%"></div></span>${r.date}${r.dateEnd ? ' → ' + r.dateEnd : ''}</td>
+          <td class="cost">${fmtCost(r.cost)}</td>
+          <td class="num">${fmtFull(r.total)}</td>
+          <td class="num">${fmtFull(r.input)}</td>
+          <td class="num">${fmtFull(r.output)}</td>
+          <td class="num">${fmtFull(r.cacheRead)}</td>
+          <td class="num">${fmtFull(r.cacheWrite)}</td>
+          <td class="num">${fmtFull(r.messages)}</td>
+          <td class="num">${r.sessions}</td>
+          <td class="num">${r.projects}</td>
+        </tr>
+      `;
+    }).join('') || `<tr><td colspan="10" class="empty">seçilen aralıkta veri yok</td></tr>`;
+
+    // Totals in footer
+    const sum = rows.reduce((acc, r) => {
+      acc.cost += r.cost;
+      acc.total += r.total;
+      acc.input += r.input;
+      acc.output += r.output;
+      acc.cacheRead += r.cacheRead;
+      acc.cacheWrite += r.cacheWrite;
+      acc.messages += r.messages;
+      return acc;
+    }, { cost:0, total:0, input:0, output:0, cacheRead:0, cacheWrite:0, messages:0 });
+
+    $('by-date-tfoot').innerHTML = rows.length ? `
+      <tr style="background:var(--bg-elev-2); font-weight:500">
+        <td style="color:var(--fg)">TOPLAM · ${rows.length} ${state.groupByMode === 'day' ? 'gün' : state.groupByMode === 'week' ? 'hafta' : 'ay'}</td>
+        <td class="cost">${fmtCost(sum.cost)}</td>
+        <td class="num">${fmtFull(sum.total)}</td>
+        <td class="num">${fmtFull(sum.input)}</td>
+        <td class="num">${fmtFull(sum.output)}</td>
+        <td class="num">${fmtFull(sum.cacheRead)}</td>
+        <td class="num">${fmtFull(sum.cacheWrite)}</td>
+        <td class="num">${fmtFull(sum.messages)}</td>
+        <td class="num">–</td>
+        <td class="num">–</td>
+      </tr>
+    ` : '';
+
+    updateSortHeaders('#by-date-table', s);
+  }
+
+  function groupedByDate() {
+    const daily = state.agg.daily;
+    if (state.groupByMode === 'day') {
+      return [...daily.entries()].map(([day, v]) => ({
+        date: day,
+        cost: v.cost,
+        total: totalOf(v),
+        input: v.input, output: v.output,
+        cacheRead: v.cacheRead, cacheWrite: v.cacheWrite,
+        messages: v.messages,
+        sessions: v.sessions.size,
+        projects: v.projects.size,
+      }));
+    }
+
+    // Group week or month
+    const groups = new Map();
+    for (const [day, v] of daily.entries()) {
+      let key, endKey;
+      const d = new Date(day + 'T12:00:00');
+      if (state.groupByMode === 'month') {
+        key = day.slice(0, 7); // YYYY-MM
+      } else {
+        // ISO week start (Mon)
+        const tmp = new Date(d);
+        const day0 = tmp.getDay() || 7;
+        tmp.setDate(tmp.getDate() - day0 + 1);
+        key = localDay(tmp);
+        const end = new Date(tmp);
+        end.setDate(end.getDate() + 6);
+        endKey = localDay(end);
+      }
+      let g = groups.get(key);
+      if (!g) {
+        g = {
+          date: key, dateEnd: endKey,
+          cost: 0, total: 0, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, messages: 0,
+          _sessions: new Set(), _projects: new Set(),
+        };
+        groups.set(key, g);
+      }
+      g.cost += v.cost;
+      g.total += totalOf(v);
+      g.input += v.input;
+      g.output += v.output;
+      g.cacheRead += v.cacheRead;
+      g.cacheWrite += v.cacheWrite;
+      g.messages += v.messages;
+      for (const s of v.sessions) g._sessions.add(s);
+      for (const p of v.projects) g._projects.add(p);
+    }
+    return [...groups.values()].map(g => ({
+      ...g,
+      sessions: g._sessions.size,
+      projects: g._projects.size,
+    }));
+  }
+
+  // ======= VIEW SWITCH =======
+  function switchView(v) {
+    state.view = v;
+    $$('.nav-item[data-view]').forEach(el => el.classList.toggle('active', el.getAttribute('data-view') === v));
+    $$('.view').forEach(el => el.classList.add('hidden'));
+    $('view-' + v).classList.remove('hidden');
+    const titles = {
+      overview: ['Özet', 'Yüklü oturumların tek bakışta özeti.'],
+      projects: ['Projeler', 'Çalışma dizinine (cwd) göre gruplanmış token kullanımı.'],
+      sessions: ['Oturumlar', 'Tüm projelerdeki oturumlar. Ayrıntı için bir satıra tıklayın.'],
+      timeline: ['Zaman Çizgisi', 'Mesaj zaman damgalarına göre zaman içindeki etkinlik.'],
+      'by-date': ['Tarihe Göre', 'Günlük / haftalık / aylık kullanım ve maliyet kırılımı.'],
+    };
+    $('page-title').textContent = titles[v][0];
+    $('page-sub').textContent = titles[v][1];
+
+    if (v === 'timeline') requestAnimationFrame(renderTimeline);
+  }
+
+  // ======= FILTER =======
+  function updateFilterInfo() {
+    const from = state.filter.dateFrom, to = state.filter.dateTo;
+    const n = state.agg ? state.agg.sessions.length : 0;
+    const events = state.agg ? applyDateFilter(state.events).length : 0;
+    if (!from && !to) {
+      $('filter-info').innerHTML = `<span class="hi">${events}</span> kayıt · tüm zamanlar`;
+    } else {
+      $('filter-info').innerHTML = `<span class="hi">${events}</span> kayıt · <span class="hi">${from || '…'} → ${to || '…'}</span>`;
+    }
+  }
+
+  function setRangePreset(preset) {
+    state.filter.rangePreset = preset;
+    const now = new Date();
+    let from = null, to = null;
+    const allDays = state.events.filter(e => e.day).map(e => e.day);
+    const minDay = allDays.length ? allDays.reduce((a, b) => a < b ? a : b) : null;
+    const maxDay = allDays.length ? allDays.reduce((a, b) => a > b ? a : b) : null;
+
+    if (preset === 'all') { from = null; to = null; }
+    else if (preset === 'today') { from = to = localDay(now); }
+    else if (preset === '7d') {
+      const d = new Date(now); d.setDate(d.getDate() - 6);
+      from = localDay(d); to = localDay(now);
+    }
+    else if (preset === '30d') {
+      const d = new Date(now); d.setDate(d.getDate() - 29);
+      from = localDay(d); to = localDay(now);
+    }
+    else if (preset === 'month') {
+      from = localDay(new Date(now.getFullYear(), now.getMonth(), 1));
+      to = localDay(now);
+    }
+    else if (preset === 'lastmonth') {
+      from = localDay(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+      to = localDay(new Date(now.getFullYear(), now.getMonth(), 0));
+    }
+
+    state.filter.dateFrom = from;
+    state.filter.dateTo = to;
+    $('date-from').value = from || '';
+    $('date-to').value = to || '';
+
+    $$('.filter-bar .btn[data-range]').forEach(b => b.classList.toggle('active', b.getAttribute('data-range') === preset));
+    rebuild();
+  }
+
+  // ======= RENDER ALL =======
+  function render() {
+    if (!state.agg) return;
+    if (state.agg.events === 0 && state.events.length === 0) {
+      $('empty').style.display = 'block';
+      $$('.view').forEach(el => el.classList.add('hidden'));
+      return;
+    }
+    $('empty').style.display = 'none';
+    renderCards();
+    renderDonut();
+    renderModelBreakdown();
+    renderTopProjects();
+    renderTopSessions();
+    renderChart();
+    renderProjectTable();
+    renderSessionsTable();
+    renderByDate();
+    updateFilterInfo();
+    if (state.view === 'timeline') renderTimeline();
+    $('view-' + state.view).classList.remove('hidden');
+  }
+
+  // ======= PRICING MODAL =======
+  function openPricingModal() {
+    const tbody = $('pricing-table').querySelector('tbody');
+    tbody.innerHTML = Object.entries(state.pricing).map(([tier, p]) => {
+      const match = DEFAULT_PRICING[tier]?.match;
+      const sub = match ? `model adında "${match}" geçiyor` : 'eşleşme olmadığında varsayılan';
+      return `
+        <tr data-tier="${tier}">
+          <td>${escapeHtml(p.label)}<small>${sub}</small></td>
+          <td class="num">$<input class="price-input" data-field="in"   type="number" step="0.01" value="${p.in}"></td>
+          <td class="num">$<input class="price-input" data-field="out"  type="number" step="0.01" value="${p.out}"></td>
+          <td class="num">$<input class="price-input" data-field="cr"   type="number" step="0.01" value="${p.cr}"></td>
+          <td class="num">$<input class="price-input" data-field="cw5m" type="number" step="0.01" value="${p.cw5m}"></td>
+          <td class="num">$<input class="price-input" data-field="cw1h" type="number" step="0.01" value="${p.cw1h}"></td>
+        </tr>
+      `;
+    }).join('');
+    $('pricing-modal').classList.add('open');
+  }
+
+  function savePricingFromModal() {
+    const rows = $('pricing-table').querySelectorAll('tbody tr');
+    const next = structuredClone(state.pricing);
+    rows.forEach(r => {
+      const tier = r.getAttribute('data-tier');
+      r.querySelectorAll('.price-input').forEach(inp => {
+        const f = inp.getAttribute('data-field');
+        next[tier][f] = parseFloat(inp.value) || 0;
+      });
+    });
+    state.pricing = next;
+    savePricing(next);
+    $('pricing-modal').classList.remove('open');
+    if (state.agg) rebuild();
+    else render();
+  }
+
+  function resetPricingInModal() {
+    const tbody = $('pricing-table').querySelector('tbody');
+    tbody.querySelectorAll('tr').forEach(r => {
+      const tier = r.getAttribute('data-tier');
+      const def = DEFAULT_PRICING[tier];
+      r.querySelectorAll('.price-input').forEach(inp => {
+        inp.value = def[inp.getAttribute('data-field')];
+      });
+    });
+  }
+
+  // ======= SESSION MODAL =======
+  function openSessionModal(projectKey, sid) {
+    const project = state.agg.projects.get(projectKey);
+    if (!project) return;
+    const session = project.sessions.get(sid);
+    if (!session) return;
+
+    const { totals, cost } = session;
+    const tot = totalOf(totals);
+    const grand = totalOf(project.totals) || 1;
+    const models = [...session.models].join(', ') || '–';
+    const dur = session.firstTs && session.lastTs ? formatDuration(session.lastTs - session.firstTs) : '–';
+
+    $('modal-title').textContent = shortSid(session.id);
+    $('modal-sub').innerHTML = `${escapeHtml(project.name)} · ${escapeHtml(project.cwd)}`;
+
+    $('modal-body').innerHTML = `
+      <div class="kv-grid">
+        <div class="kv"><div class="k">oturum kimliği</div><div class="v" style="font-size:11px; word-break:break-all">${escapeHtml(session.id)}</div></div>
+        <div class="kv"><div class="k">tahmini maliyet</div><div class="v" style="color:var(--cost)">${fmtCost(cost)}</div></div>
+        <div class="kv"><div class="k">toplam token</div><div class="v">${fmtFull(tot)}</div></div>
+        <div class="kv"><div class="k">mesaj</div><div class="v">${fmtFull(totals.messages)}</div></div>
+        <div class="kv"><div class="k">proje içindeki pay</div><div class="v">${((tot/grand)*100).toFixed(1)}%</div></div>
+        <div class="kv"><div class="k">süre</div><div class="v" style="font-size:11px">${dur}</div></div>
+        <div class="kv"><div class="k">ilk etkinlik</div><div class="v" style="font-size:11px">${session.firstTs ? new Date(session.firstTs).toISOString().replace('T',' ').slice(0,19) : '–'}</div></div>
+        <div class="kv"><div class="k">son etkinlik</div><div class="v" style="font-size:11px">${session.lastTs ? new Date(session.lastTs).toISOString().replace('T',' ').slice(0,19) : '–'}</div></div>
+        <div class="kv" style="grid-column: span 2"><div class="k">modeller</div><div class="v" style="font-size:11px">${escapeHtml(models)}</div></div>
+      </div>
+
+      <h3 style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--fg-mute); margin:16px 0 10px">token kırılımı</h3>
+      <div class="chart-row">
+        <div class="chart-label">giriş</div>
+        <div class="chart-bar-wrap"><div class="chart-seg input" style="width:${tot?((totals.input/tot)*100):0}%"></div></div>
+        <div class="chart-total">${fmtFull(totals.input)}</div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-label">çıkış</div>
+        <div class="chart-bar-wrap"><div class="chart-seg output" style="width:${tot?((totals.output/tot)*100):0}%"></div></div>
+        <div class="chart-total">${fmtFull(totals.output)}</div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-label">önbellek-okuma</div>
+        <div class="chart-bar-wrap"><div class="chart-seg cache" style="width:${tot?((totals.cacheRead/tot)*100):0}%"></div></div>
+        <div class="chart-total">${fmtFull(totals.cacheRead)}</div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-label">önb-yazma 5dk</div>
+        <div class="chart-bar-wrap"><div class="chart-seg cache-write" style="width:${tot?((totals.cacheWrite/tot)*100):0}%"></div></div>
+        <div class="chart-total">${fmtFull(totals.cacheWrite)}</div>
+      </div>
+      ${(totals.cacheWrite1h || 0) ? `
+      <div class="chart-row">
+        <div class="chart-label">önb-yazma 1sa</div>
+        <div class="chart-bar-wrap"><div class="chart-seg cache-write" style="width:${tot?((totals.cacheWrite1h/tot)*100):0}%; opacity:0.7"></div></div>
+        <div class="chart-total">${fmtFull(totals.cacheWrite1h)}</div>
+      </div>` : ''}
+
+      ${(() => {
+        // Cost breakdown by model for this session (recomputed from events)
+        const sessEvents = state.events.filter(e => e.sessionId === session.id && e.projectKey === projectKey);
+        const byTier = new Map();
+        for (const e of sessEvents) {
+          let b = byTier.get(e.tier);
+          if (!b) { b = { tier: e.tier, models: new Set(), tok: emptyTokens(), cost: 0 }; byTier.set(e.tier, b); }
+          if (e.model) b.models.add(e.model);
+          const t = { input: e.input, output: e.output, cacheRead: e.cacheRead, cacheWrite: e.cacheWrite, cacheWrite1h: e.cacheWrite1h || 0, messages: 1 };
+          addTokens(b.tok, t);
+          b.cost += computeCost(t, e.model, state.pricing);
+        }
+        const rows = [...byTier.values()].sort((a,b) => b.cost - a.cost);
+        if (!rows.length) return '';
+        return `
+          <h3 style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--fg-mute); margin:20px 0 10px">modele göre maliyet</h3>
+          ${rows.map(r => {
+            const p = state.pricing[r.tier] || state.pricing.default;
+            const names = [...r.models].join(', ') || '(model bilgisi yok)';
+            const cIn = (r.tok.input||0)/1e6*p.in;
+            const cOut = (r.tok.output||0)/1e6*p.out;
+            const cR = (r.tok.cacheRead||0)/1e6*p.cr;
+            const cW5 = (r.tok.cacheWrite||0)/1e6*p.cw5m;
+            const cW1 = (r.tok.cacheWrite1h||0)/1e6*p.cw1h;
+            const mbRow = (k, q, rate, sub) => `<div class="mb-row"><span class="mb-k">${k}</span><span class="mb-q">${fmtFull(q)}</span><span class="mb-r">@ $${rate.toFixed(2)}/M</span><span class="mb-s">${fmtCost(sub)}</span></div>`;
+            return `
+              <div class="mb-card">
+                <div class="mb-head">
+                  <div>
+                    <div class="mb-title">${escapeHtml(p.label || r.tier)}</div>
+                    <div class="mb-sub" title="${escapeHtml(names)}">${escapeHtml(names.length>64?names.slice(0,62)+'…':names)}</div>
+                  </div>
+                  <span class="cost-badge">${fmtCost(r.cost)}</span>
+                </div>
+                <div class="mb-rows">
+                  ${mbRow('giriş',          r.tok.input        || 0, p.in,   cIn)}
+                  ${mbRow('çıkış',          r.tok.output       || 0, p.out,  cOut)}
+                  ${mbRow('önbellek okuma', r.tok.cacheRead    || 0, p.cr,   cR)}
+                  ${(r.tok.cacheWrite || 0)   ? mbRow('önbellek 5dk', r.tok.cacheWrite   || 0, p.cw5m, cW5) : ''}
+                  ${(r.tok.cacheWrite1h || 0) ? mbRow('önbellek 1sa', r.tok.cacheWrite1h || 0, p.cw1h, cW1) : ''}
+                </div>
+              </div>`;
+          }).join('')}`;
+      })()}
+
+      <h3 style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--fg-mute); margin:20px 0 10px">${escapeHtml(project.name)} içindeki diğer oturumlar</h3>
+      <div class="topn" id="modal-siblings"></div>
+    `;
+
+    const siblings = [...project.sessions.values()]
+      .filter(s => s.id !== session.id)
+      .sort((a,b) => b.cost - a.cost)
+      .slice(0, 5);
+    const max = siblings.reduce((m, s) => Math.max(m, s.cost), 0) || 1;
+    $('modal-siblings').innerHTML = siblings.length ? siblings.map((s, i) => `
+      <div class="topn-item" data-action="open-session" data-sid="${escapeHtml(s.id)}" data-key="${escapeHtml(s.projectKey)}">
+        <div class="topn-rank">${i+1}.</div>
+        <div class="topn-name">${escapeHtml(shortSid(s.id))}<span class="meta">${fmtFull(s.totals.messages)}m</span></div>
+        <div class="topn-val"><span class="mini-bar"><div style="width:${(s.cost/max)*100}%"></div></span>${fmtCost(s.cost)}</div>
+      </div>`).join('') : '<div class="empty" style="padding:12px">bu projedeki tek oturum</div>';
+
+    $('modal').classList.add('open');
+  }
+
+  // ======= EVENTS =======
+  $$('.nav-item[data-view]').forEach(el => {
+    el.addEventListener('click', () => switchView(el.getAttribute('data-view')));
+  });
+
+  $('btn-reload').addEventListener('click', () => {
+    if (state.storedFiles) ingest(state.storedFiles);
+    else $('file-input').click();
+  });
+  $('btn-clear').addEventListener('click', () => {
+    resetData();
+    state.storedFiles = null;
+    $('dropzone').classList.remove('compact');
+    $('filter-bar').style.display = 'none';
+    setToast('temizlendi.');
+    $('empty').style.display = 'block';
+    $$('.view').forEach(el => el.classList.add('hidden'));
+    $('sidebar-stats').innerHTML = `
+      <span class="k">dosya</span><span class="v">0</span><br>
+      <span class="k">proje</span><span class="v">0</span><br>
+      <span class="k">oturum</span><span class="v">0</span><br>
+      <span class="k">mesaj</span><span class="v">0</span><br>
+      <span class="k">tahmini maliyet</span><span class="cost-v">$0.00</span>
+    `;
+  });
+
+  $('btn-pricing').addEventListener('click', openPricingModal);
+  $('pricing-close').addEventListener('click', () => $('pricing-modal').classList.remove('open'));
+  $('pricing-save').addEventListener('click', savePricingFromModal);
+  $('pricing-reset').addEventListener('click', resetPricingInModal);
+  $('pricing-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'pricing-modal') $('pricing-modal').classList.remove('open');
+  });
+
+  // Drop zone
+  const dz = $('dropzone'), fi = $('file-input'), fiSingle = $('file-input-single');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', (e) => {
+    if (e.currentTarget === dz && !dz.contains(e.relatedTarget)) dz.classList.remove('drag');
+  });
+  dz.addEventListener('drop', async e => {
+    e.preventDefault();
+    dz.classList.remove('drag');
+    const items = e.dataTransfer.items;
+    if (items && items.length && items[0].webkitGetAsEntry) {
+      const files = [], entries = [];
+      for (const item of items) {
+        const ent = item.webkitGetAsEntry();
+        if (ent) entries.push(ent);
+      }
+      await Promise.all(entries.map(ent => readEntry(ent, files)));
+      if (files.length) return ingest(files);
+    }
+    if (e.dataTransfer.files?.length) ingest(e.dataTransfer.files);
+  });
+  function readEntry(entry, out) {
+    return new Promise(resolve => {
+      if (entry.isFile) entry.file(f => { out.push(f); resolve(); }, () => resolve());
+      else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const readAll = () => reader.readEntries(async entries => {
+          if (!entries.length) return resolve();
+          await Promise.all(entries.map(e => readEntry(e, out)));
+          readAll();
+        }, () => resolve());
+        readAll();
+      } else resolve();
+    });
+  }
+  fi.addEventListener('change', e => { if (e.target.files?.length) ingest(e.target.files); });
+  fiSingle.addEventListener('change', e => { if (e.target.files?.length) ingest(e.target.files); });
+
+  // Explicit action buttons
+  $('dz-pick-folder').addEventListener('click', (e) => { e.stopPropagation(); fi.click(); });
+  $('dz-pick-files').addEventListener('click', (e) => { e.stopPropagation(); fiSingle.click(); });
+
+  // Copy-path chips
+  dz.querySelectorAll('.copy').forEach(el => {
+    el.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const target = document.querySelector(el.getAttribute('data-copy'));
+      if (!target) return;
+      try {
+        await navigator.clipboard.writeText(target.textContent);
+        el.classList.add('copied');
+        const prev = el.textContent;
+        el.textContent = '✓';
+        setTimeout(() => { el.classList.remove('copied'); el.textContent = prev; }, 1200);
+      } catch {}
+    });
+  });
+
+  // Top-N mode
+  $$('.btn[data-topn]').forEach(b => b.addEventListener('click', () => {
+    $$('.btn[data-topn]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.topnMode = b.getAttribute('data-topn');
+    renderTopProjects();
+  }));
+
+  // Timeline mode
+  $$('.btn[data-series]').forEach(b => b.addEventListener('click', () => {
+    $$('.btn[data-series]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.timelineMode = b.getAttribute('data-series');
+    renderTimeline();
+  }));
+
+  // Group-by mode
+  $$('.btn[data-groupby]').forEach(b => b.addEventListener('click', () => {
+    $$('.btn[data-groupby]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.groupByMode = b.getAttribute('data-groupby');
+    state.sort.byDate.key = 'date';
+    state.sort.byDate.dir = 'desc';
+    renderByDate();
+  }));
+
+  // Date range presets
+  $$('.filter-bar .btn[data-range]').forEach(b => b.addEventListener('click', () => {
+    setRangePreset(b.getAttribute('data-range'));
+  }));
+
+  // Manual date inputs
+  $('date-from').addEventListener('change', (e) => {
+    state.filter.dateFrom = e.target.value || null;
+    state.filter.rangePreset = 'custom';
+    $$('.filter-bar .btn[data-range]').forEach(b => b.classList.remove('active'));
+    rebuild();
+  });
+  $('date-to').addEventListener('change', (e) => {
+    state.filter.dateTo = e.target.value || null;
+    state.filter.rangePreset = 'custom';
+    $$('.filter-bar .btn[data-range]').forEach(b => b.classList.remove('active'));
+    rebuild();
+  });
+
+  // Table sort
+  $$('#details thead th').forEach(th => th.addEventListener('click', () => {
+    const key = th.getAttribute('data-sort');
+    const s = state.sort.projects;
+    if (s.key === key) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+    else { s.key = key; s.dir = 'desc'; }
+    renderProjectTable();
+  }));
+  $$('#sessions-table thead th').forEach(th => th.addEventListener('click', () => {
+    const key = th.getAttribute('data-sort');
+    const s = state.sort.sessions;
+    if (s.key === key) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+    else { s.key = key; s.dir = 'desc'; }
+    renderSessionsTable();
+  }));
+  $$('#by-date-table thead th').forEach(th => th.addEventListener('click', () => {
+    const key = th.getAttribute('data-sort');
+    const s = state.sort.byDate;
+    if (s.key === key) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+    else { s.key = key; s.dir = 'desc'; }
+    renderByDate();
+  }));
+
+  // Search
+  $('search-projects').addEventListener('input', (e) => {
+    state.filter.projects = e.target.value;
+    renderProjectTable();
+  });
+  $('search-sessions').addEventListener('input', (e) => {
+    state.filter.sessions = e.target.value;
+    renderSessionsTable();
+  });
+
+  // Row clicks
+  document.body.addEventListener('click', (e) => {
+    const trig = e.target.closest('[data-action]');
+    if (trig) {
+      const action = trig.getAttribute('data-action');
+      if (action === 'open-session') {
+        e.preventDefault(); e.stopPropagation();
+        openSessionModal(trig.getAttribute('data-key'), trig.getAttribute('data-sid'));
+        return;
+      }
+      if (action === 'open-project') {
+        switchView('projects');
+        return;
+      }
+      if (action === 'filter-day') {
+        const day = trig.getAttribute('data-day');
+        const end = trig.getAttribute('data-end');
+        if (day) {
+          state.filter.dateFrom = day;
+          state.filter.dateTo = end || day;
+          state.filter.rangePreset = 'custom';
+          $('date-from').value = day;
+          $('date-to').value = end || day;
+          $$('.filter-bar .btn[data-range]').forEach(b => b.classList.remove('active'));
+          rebuild();
+        }
+        return;
+      }
+    }
+
+    const pr = e.target.closest('tr.proj-row');
+    if (pr && pr.closest('#tbody')) {
+      const id = pr.getAttribute('data-proj');
+      pr.classList.toggle('open');
+      $$(`#tbody tr.session-row[data-proj="${id}"]`).forEach(sr => sr.classList.toggle('open'));
+    }
+  });
+
+  // Modal close
+  $('modal-close').addEventListener('click', () => $('modal').classList.remove('open'));
+  $('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') $('modal').classList.remove('open'); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      $('modal').classList.remove('open');
+      $('pricing-modal').classList.remove('open');
+    }
+  });
+
+  // Resize
+  let rTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(rTimer);
+    rTimer = setTimeout(() => {
+      if (state.view === 'timeline' && state.agg) renderTimeline();
+    }, 120);
+  });
+
+  switchView('overview');
+})();
+</script>
+
+</body>
+</html>
