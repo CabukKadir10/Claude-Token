@@ -209,6 +209,25 @@
       "projects": "Proje"
     }
   },
+  "pricingEditor": {
+    "title": "Fiyatlandırma düzenleyici",
+    "subtitle": "Tüm değerler 1M token başına USD cinsindedir.",
+    "columns": {
+      "tier": "Tier",
+      "in": "Girdi",
+      "out": "Çıktı",
+      "cr": "Önbellek okuma",
+      "cw5m": "Önbellek yazma 5d",
+      "cw1h": "Önbellek yazma 1s",
+      "actions": "Aksiyon"
+    },
+    "resetTier": "Varsayılana sıfırla",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "errors": {
+      "invalidNumbers": "Geçersiz değer var. Tüm alanlar 0 veya daha büyük sayılar olmalı."
+    }
+  },
   "placeholder": {
     "viewWillRender": "{view} görünümü içeriği burada renderlanacak."
   },

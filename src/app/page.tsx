@@ -1,15 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AppShell } from '@/presentation/components/layout/app-shell';
 import { Card, CardContent } from '@/presentation/components/ui/card';
 import { Dropzone } from '@/presentation/components/data/dropzone';
+import { PricingEditor } from '@/presentation/components/data/pricing-editor';
 import { DateRangeFilter } from '@/presentation/components/filters/date-range-filter';
 import { OverviewView } from '@/presentation/views/overview-view';
 import { TimelineView } from '@/presentation/views/timeline-view';
 import { SessionsView } from '@/presentation/views/sessions-view';
 import { ProjectsView } from '@/presentation/views/projects-view';
 import { ByDateView } from '@/presentation/views/by-date-view';
+import type { ActionId } from '@/presentation/components/layout/sidebar';
 import { useEvents } from '@/presentation/hooks/use-events';
 import { usePricing } from '@/presentation/hooks/use-pricing';
 import { useAggregation } from '@/presentation/hooks/use-aggregation';
@@ -19,11 +22,21 @@ export default function HomePage() {
   const pricing = usePricing();
   const events = useEvents();
   const filters = useFilters();
-  const aggregation = useAggregation(events.events, pricing, filters.range);
+  const aggregation = useAggregation(events.events, pricing.pricing, filters.range);
   const hasData = events.events.length > 0;
+  const [pricingOpen, setPricingOpen] = useState(false);
+
+  const handleSidebarAction = (id: ActionId) => {
+    if (id === 'pricing') {
+      setPricingOpen(true);
+    }
+  };
 
   return (
-    <AppShell topbarActions={hasData ? <DateRangeFilter filters={filters} /> : null}>
+    <AppShell
+      onAction={handleSidebarAction}
+      topbarActions={hasData ? <DateRangeFilter filters={filters} /> : null}
+    >
       {(view) => (
         <div className="space-y-4">
           <Dropzone
@@ -46,6 +59,12 @@ export default function HomePage() {
             view !== 'by-date' && (
             <ViewPlaceholder view={view} />
             )}
+          <PricingEditor
+            open={pricingOpen}
+            onOpenChange={setPricingOpen}
+            pricing={pricing.pricing}
+            onSave={pricing.setPricing}
+          />
         </div>
       )}
     </AppShell>

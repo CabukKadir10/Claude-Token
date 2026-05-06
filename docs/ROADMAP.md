@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S12 — By-date view (Tarihe Gore: gunluk/haftalik/aylik gruplama, siralanabilir tablo ve ISO hafta/ay anahtari tamamlandi).
+> **Son tamamlanan adım:** S13 — Pricing editor (sidebar aksiyonundan acilan dialog, tier bazli fiyat girisi/sifirlama, localStorage kaydi ve anlik re-aggregate tamamlandi).
 >
-> **Aktif adım:** S13 — Pricing editor.
+> **Aktif adım:** S14 — Reload & Clear aksiyonları.
 
 ---
 
@@ -89,12 +89,12 @@
 **Kullanıcı olarak**, default tarifeyi değiştirip kendi pazarlık ettiğim fiyatları kullanmak ve bunu cihazımda saklamak istiyorum.
 
 **Kabul kriterleri**
-- [ ] Sidebar "Fiyatlandırma" aksiyonu modal/drawer açar.
-- [ ] Her tier için 5 alan: input, output, cache read, cache write 5m, cache write 1h ($/M).
-- [ ] "Varsayılana sıfırla" butonu o tier'ı default'a döndürür.
-- [ ] Kaydet butonu `localStorage`'a yazar; sayfa yenileme sonrası korunur.
-- [ ] Geçersiz girdi (negatif sayı, NaN) form-level hata olarak gösterilir, kayıt engellenir.
-- [ ] KPI / donut / model breakdown / timeline anında yeni fiyatla yeniden hesaplanır (mevcut memo zaten ref-eşitliğine bağlı; pricing değiştiğinde re-aggregate olmalı).
+- [x] Sidebar "Fiyatlandırma" aksiyonu modal/drawer açar.
+- [x] Her tier için 5 alan: input, output, cache read, cache write 5m, cache write 1h ($/M).
+- [x] "Varsayılana sıfırla" butonu o tier'ı default'a döndürür.
+- [x] Kaydet butonu `localStorage`'a yazar; sayfa yenileme sonrası korunur.
+- [x] Geçersiz girdi (negatif sayı, NaN) form-level hata olarak gösterilir, kayıt engellenir.
+- [x] KPI / donut / model breakdown / timeline anında yeni fiyatla yeniden hesaplanır (mevcut memo zaten ref-eşitliğine bağlı; pricing değiştiğinde re-aggregate olmalı).
 
 **Notlar**
 - `application/use-cases/load-pricing.ts` ve `save-pricing.ts` zaten var; sadece UI eksik.

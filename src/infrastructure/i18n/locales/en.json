@@ -209,6 +209,25 @@
       "projects": "Projects"
     }
   },
+  "pricingEditor": {
+    "title": "Pricing editor",
+    "subtitle": "All values are USD per 1M tokens.",
+    "columns": {
+      "tier": "Tier",
+      "in": "Input",
+      "out": "Output",
+      "cr": "Cache read",
+      "cw5m": "Cache write 5m",
+      "cw1h": "Cache write 1h",
+      "actions": "Actions"
+    },
+    "resetTier": "Reset to default",
+    "cancel": "Cancel",
+    "save": "Save",
+    "errors": {
+      "invalidNumbers": "Invalid input detected. All fields must be numbers greater than or equal to 0."
+    }
+  },
   "placeholder": {
     "viewWillRender": "{view} view will render here."
   },
