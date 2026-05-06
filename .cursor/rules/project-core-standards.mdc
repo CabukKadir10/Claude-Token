@@ -1,0 +1,46 @@
+---
+description: Proje genelinde kod, test, i18n ve mimari standartlari
+alwaysApply: true
+---
+
+# Proje Cekirdek Standartlari
+
+Bu kural tum oturumlarda uygulanir.
+
+## Mimari
+
+- Katman sinirlarini koru: `domain` saf kalir; `application` orkestrasyon yapar; `infrastructure` dis baglantilari uygular; `presentation` sadece UI tutar.
+- Domain katmanindan framework/IO bagimliliklari ekleme.
+
+## Test
+
+- Saf is kurali veya use-case degisikliginde ilgili birim testi ekle/guncelle.
+- Var olan testleri bypass etme; kirilan testi duzeltmeden isi tamamlanmis sayma.
+
+## UI ve i18n
+
+- Kullaniciya gorunen yeni metinleri hardcode etme.
+- Metinleri i18n sozluklerinden kullan; TR/EN anahtarlarini birlikte guncel tut.
+
+## Kod Kalitesi
+
+- Degisiklikleri minimum kapsamla yap; alakasiz dosyalara dokunma.
+- Buyuk degisikliklerden sonra lint + typecheck + test calistir ve sonucu raporla.
+
+## Kisa Ornekler
+
+```ts
+// kotu
+throw "hata";
+
+// iyi
+throw new Error("Beklenmeyen durum");
+```
+
+```tsx
+// kotu
+<button>Kaydet</button>
+
+// iyi (ornek)
+<button>{t("common.save")}</button>
+```
