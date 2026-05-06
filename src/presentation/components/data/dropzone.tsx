@@ -27,6 +27,8 @@ interface DropzoneProps {
   readonly error: string | null;
   readonly onFiles: (sources: ReadonlyArray<FileSource>) => void | Promise<void>;
   readonly onClear: () => void;
+  /** Increments whenever parent wants to open folder picker imperatively. */
+  readonly reloadPickerRequest?: number;
 }
 
 /**
@@ -37,12 +39,13 @@ interface DropzoneProps {
  *   - ready    → compact summary banner (file/event/error counts + actions)
  */
 export function Dropzone(props: DropzoneProps) {
-  const { status, progress, stats, error, onFiles, onClear } = props;
+  const { status, progress, stats, error, onFiles, onClear, reloadPickerRequest } = props;
   const t = useTranslations('dropzone');
   const { locale } = useLocale();
 
   const dirInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const lastReloadPickerRequest = useRef(reloadPickerRequest ?? 0);
   const [dragActive, setDragActive] = useState(false);
 
   // `webkitdirectory` is non-standard, so set it via ref to keep React/TS happy.
@@ -53,6 +56,13 @@ export function Dropzone(props: DropzoneProps) {
     el.setAttribute('directory', '');
     el.setAttribute('mozdirectory', '');
   }, []);
+
+  useEffect(() => {
+    const currentRequest = reloadPickerRequest ?? 0;
+    if (currentRequest === lastReloadPickerRequest.current) return;
+    lastReloadPickerRequest.current = currentRequest;
+    if (status !== 'parsing') dirInputRef.current?.click();
+  }, [reloadPickerRequest, status]);
 
   const handleDrop = useCallback(
     async (e: DragEvent<HTMLDivElement>) => {

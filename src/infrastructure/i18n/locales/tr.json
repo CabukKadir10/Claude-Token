@@ -23,6 +23,14 @@
     "themeAria": "Tema değiştir",
     "languageAria": "Dil değiştir"
   },
+  "sidebarActions": {
+    "clearDialog": {
+      "title": "Verileri temizle",
+      "description": "Yüklenen tüm olaylar ve filtreler sıfırlanacak. Devam etmek istiyor musunuz?",
+      "cancel": "İptal",
+      "confirm": "Temizle"
+    }
+  },
   "views": {
     "overview": { "title": "Özet", "subtitle": "Anahtar metrikler ve dağılımlar" },
     "projects": { "title": "Projeler", "subtitle": "Proje bazında token ve maliyet" },

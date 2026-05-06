@@ -26,6 +26,8 @@ export interface UseEventsResult {
   readonly error: string | null;
   /** Parse a fresh batch of files and append the resulting events to the current set. */
   readonly addFiles: (sources: ReadonlyArray<FileSource>) => Promise<void>;
+  /** Re-parse the last selected source batch; returns false when nothing is remembered. */
+  readonly reloadLast: () => Promise<boolean>;
   /** Wipe all events and stats; resets status to `idle`. */
   readonly clear: () => void;
 }
@@ -47,29 +49,55 @@ export function useEvents(): UseEventsResult {
   const [progress, setProgress] = useState<ParseProgress>(ZERO_PROGRESS);
   const [stats, setStats] = useState<ParseStats>(ZERO_STATS);
   const [error, setError] = useState<string | null>(null);
+  const [lastSources, setLastSources] = useState<ReadonlyArray<FileSource> | null>(null);
 
-  const addFiles = useCallback(async (sources: ReadonlyArray<FileSource>) => {
+  const parseSources = useCallback(async (sources: ReadonlyArray<FileSource>) => {
     if (sources.length === 0) return;
     setStatus('parsing');
     setError(null);
     setProgress({ done: 0, total: sources.length });
+    return parseJsonlFiles({
+      files: sources,
+      onProgress: (done, total) => setProgress({ done, total }),
+    });
+  }, []);
+
+  const addFiles = useCallback(async (sources: ReadonlyArray<FileSource>) => {
     try {
-      const result = await parseJsonlFiles({
-        files: sources,
-        onProgress: (done, total) => setProgress({ done, total }),
-      });
+      const result = await parseSources(sources);
+      if (!result) return;
       setEvents((prev) => prev.concat(result.events));
       setStats((prev) => ({
         fileCount: prev.fileCount + result.fileCount,
         lineCount: prev.lineCount + result.lineCount,
         parseErrors: prev.parseErrors + result.parseErrors,
       }));
+      setLastSources(sources.slice());
       setStatus('ready');
     } catch (e) {
       setStatus('error');
       setError(e instanceof Error ? e.message : String(e));
     }
-  }, []);
+  }, [parseSources]);
+
+  const reloadLast = useCallback(async () => {
+    if (!lastSources || lastSources.length === 0) return false;
+    try {
+      const result = await parseSources(lastSources);
+      if (!result) return false;
+      setEvents(result.events);
+      setStats({
+        fileCount: result.fileCount,
+        lineCount: result.lineCount,
+        parseErrors: result.parseErrors,
+      });
+      setStatus('ready');
+    } catch (e) {
+      setStatus('error');
+      setError(e instanceof Error ? e.message : String(e));
+    }
+    return true;
+  }, [lastSources, parseSources]);
 
   const clear = useCallback(() => {
     setEvents([]);
@@ -77,7 +105,8 @@ export function useEvents(): UseEventsResult {
     setProgress(ZERO_PROGRESS);
     setError(null);
     setStatus('idle');
+    setLastSources(null);
   }, []);
 
-  return { events, status, progress, stats, error, addFiles, clear };
+  return { events, status, progress, stats, error, addFiles, reloadLast, clear };
 }

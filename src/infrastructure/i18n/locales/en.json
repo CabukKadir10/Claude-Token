@@ -23,6 +23,14 @@
     "themeAria": "Toggle theme",
     "languageAria": "Change language"
   },
+  "sidebarActions": {
+    "clearDialog": {
+      "title": "Clear data",
+      "description": "All loaded events and filters will be reset. Do you want to continue?",
+      "cancel": "Cancel",
+      "confirm": "Clear"
+    }
+  },
   "views": {
     "overview": { "title": "Overview", "subtitle": "Key metrics and breakdowns" },
     "projects": { "title": "Projects", "subtitle": "Tokens and cost by project" },

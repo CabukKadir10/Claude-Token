@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S13 — Pricing editor (sidebar aksiyonundan acilan dialog, tier bazli fiyat girisi/sifirlama, localStorage kaydi ve anlik re-aggregate tamamlandi).
+> **Son tamamlanan adım:** S14 — Reload & Clear aksiyonları (sidebar `reload` son seçimi yeniden parse ediyor; seçim yoksa folder picker açıyor; `clear` confirmation sonrası event + filtre resetliyor).
 >
-> **Aktif adım:** S14 — Reload & Clear aksiyonları.
+> **Aktif adım:** S15 — CSV / JSON dışa aktarma.
 
 ---
 
@@ -114,9 +114,9 @@
 **Kullanıcı olarak**, sidebar'daki **Yeniden yükle** ve **Temizle** butonlarının fiilen çalışmasını istiyorum.
 
 **Kabul kriterleri**
-- [ ] **Yeniden yükle**: önceki klasör/dosya seçimi hatırlanıyorsa onu yeniden parse eder; hatırlanmıyorsa folder picker'ı açar.
-- [ ] **Temizle**: confirmation prompt sonrası `events.clear()` çağırır ve filtreyi (`useFilters.reset()`) sıfırlar.
-- [ ] Veri yokken her iki butonun davranışı tutarlı (clear no-op olabilir).
+- [x] **Yeniden yükle**: önceki klasör/dosya seçimi hatırlanıyorsa onu yeniden parse eder; hatırlanmıyorsa folder picker'ı açar.
+- [x] **Temizle**: confirmation prompt sonrası `events.clear()` çağırır ve filtreyi (`useFilters.reset()`) sıfırlar.
+- [x] Veri yokken her iki butonun davranışı tutarlı (clear no-op olabilir).
 
 **Notlar**
 - File System Access API ile dizin handle'ı persiste edilebilirse "yeniden yükle" gerçek anlamlı olur. Yoksa folder picker'ı tekrar açmaktan ibaret.
