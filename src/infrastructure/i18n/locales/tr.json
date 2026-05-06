@@ -21,7 +21,12 @@
   },
   "topbar": {
     "themeAria": "Tema değiştir",
-    "languageAria": "Dil değiştir"
+    "languageAria": "Dil değiştir",
+    "export": {
+      "button": "Dışa aktar",
+      "csv": "CSV indir",
+      "json": "JSON indir"
+    }
   },
   "sidebarActions": {
     "clearDialog": {

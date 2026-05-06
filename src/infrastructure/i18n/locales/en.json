@@ -21,7 +21,12 @@
   },
   "topbar": {
     "themeAria": "Toggle theme",
-    "languageAria": "Change language"
+    "languageAria": "Change language",
+    "export": {
+      "button": "Export",
+      "csv": "Download CSV",
+      "json": "Download JSON"
+    }
   },
   "sidebarActions": {
     "clearDialog": {

@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S14 — Reload & Clear aksiyonları (sidebar `reload` son seçimi yeniden parse ediyor; seçim yoksa folder picker açıyor; `clear` confirmation sonrası event + filtre resetliyor).
+> **Son tamamlanan adım:** S15 — CSV / JSON dışa aktarma (Sessions, Projects ve By-date görünümünde topbar "Dışa aktar" menüsü; CSV BOM'lu UTF-8 ve JSON pretty-print; export aktif filtredeki görünür satırları indiriyor).
 >
-> **Aktif adım:** S15 — CSV / JSON dışa aktarma.
+> **Aktif adım:** S16 — Static export ve GitHub Pages dağıtımı.
 
 ---
 
@@ -68,7 +68,7 @@
 - [x] Tablo: tarih (veya ISO hafta / ay), maliyet, toplam, input, output, cache-r, cache-w, mesaj, oturum, proje. Sıralanabilir.
 - [x] Hafta = ISO 8601 (Pazartesi başlangıç). Ay = `YYYY-MM`.
 - [x] Boş günler **tabloda gösterilmez** (timeline gap-fill'inden farklı: tabloda gürültü yapar).
-- [ ] CSV indir butonu (opsiyonel, S15'te de yapılabilir).
+- [x] CSV indir butonu (opsiyonel, S15'te de yapılabilir).
 
 **Notlar**
 - Hafta/ay grupingi yeni bir `application/use-cases/group-daily-by.ts` use-case'i + sibling test ile ekle.
@@ -135,10 +135,10 @@
 **Kullanıcı olarak**, mevcut görünümün verisini CSV (veya JSON) olarak indirmek; **böylece** tabloyu Excel'de açabilmek veya başka bir araca aktarmak istiyorum.
 
 **Kabul kriterleri**
-- [ ] By-date, Sessions ve Projects view'larında topbar'da bir "Dışa aktar" butonu var.
-- [ ] CSV: BOM'lu UTF-8, virgül ayraçlı, ondalık nokta. Dosya adı: `claude-tokens-{view}-{YYYY-MM-DD}.csv`.
-- [ ] JSON: pretty-printed, görünen kolonların aynısı.
-- [ ] Aktarılan veri **mevcut filtreye uyar** (date range vs.).
+- [x] By-date, Sessions ve Projects view'larında topbar'da bir "Dışa aktar" butonu var.
+- [x] CSV: BOM'lu UTF-8, virgül ayraçlı, ondalık nokta. Dosya adı: `claude-tokens-{view}-{YYYY-MM-DD}.csv`.
+- [x] JSON: pretty-printed, görünen kolonların aynısı.
+- [x] Aktarılan veri **mevcut filtreye uyar** (date range vs.).
 
 **Dosyalar (yeni)**
 - `src/shared/utils/to-csv.ts` + test

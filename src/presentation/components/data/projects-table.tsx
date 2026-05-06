@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Project } from '@/domain/entities/project';
 import { totalTokens } from '@/domain/value-objects/tokens';
@@ -15,6 +15,7 @@ interface ProjectsTableProps {
   readonly projects: ReadonlyArray<Project>;
   readonly selectedProjectKey: string | null;
   readonly onSelectProject: (projectKey: string) => void;
+  readonly onVisibleRowsChange?: (rows: ReadonlyArray<Project>) => void;
 }
 
 type SortKey = 'name' | 'sessions' | 'messages' | 'tokens' | 'cost' | 'lastActivity';
@@ -24,6 +25,7 @@ export function ProjectsTable({
   projects,
   selectedProjectKey,
   onSelectProject,
+  onVisibleRowsChange,
 }: ProjectsTableProps) {
   const t = useTranslations('projects');
   const tRel = useTranslations('relativeTime');
@@ -47,6 +49,10 @@ export function ProjectsTable({
       return { key, direction: key === 'cost' || key === 'lastActivity' ? 'desc' : 'asc' };
     });
   };
+
+  useEffect(() => {
+    onVisibleRowsChange?.(sortedProjects);
+  }, [onVisibleRowsChange, sortedProjects]);
 
   return (
     <Card>

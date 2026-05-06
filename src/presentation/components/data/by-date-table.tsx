@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   groupedTotalTokens,
@@ -19,6 +19,10 @@ import { fmtCompact } from '@/shared/utils/format-number';
 
 interface ByDateTableProps {
   readonly daily: ReadonlyArray<DailyBucket>;
+  readonly onVisibleRowsChange?: (payload: {
+    rows: ReadonlyArray<GroupedDailyBucket>;
+    period: GroupByPeriod;
+  }) => void;
 }
 
 type SortKey =
@@ -34,7 +38,7 @@ type SortKey =
   | 'projects';
 type SortDirection = 'asc' | 'desc';
 
-export function ByDateTable({ daily }: ByDateTableProps) {
+export function ByDateTable({ daily, onVisibleRowsChange }: ByDateTableProps) {
   const t = useTranslations('byDate');
   const { locale } = useLocale();
   const [period, setPeriod] = useState<GroupByPeriod>('day');
@@ -58,6 +62,10 @@ export function ByDateTable({ daily }: ByDateTableProps) {
       return { key, direction: key === 'period' ? 'desc' : 'asc' };
     });
   };
+
+  useEffect(() => {
+    onVisibleRowsChange?.({ rows: sortedRows, period });
+  }, [onVisibleRowsChange, period, sortedRows]);
 
   return (
     <Card>

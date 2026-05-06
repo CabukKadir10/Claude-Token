@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Session } from '@/domain/entities/session';
 import { totalTokens } from '@/domain/value-objects/tokens';
@@ -17,6 +17,7 @@ interface SessionsTableProps {
   readonly sessions: ReadonlyArray<Session>;
   readonly compact?: boolean;
   readonly projectKeyFilter?: string | null;
+  readonly onVisibleRowsChange?: (rows: ReadonlyArray<Session>) => void;
 }
 
 type SortKey = 'sid' | 'project' | 'lastActivity' | 'duration' | 'messages' | 'mainModel' | 'tokens' | 'cost';
@@ -26,6 +27,7 @@ export function SessionsTable({
   sessions,
   compact = false,
   projectKeyFilter = null,
+  onVisibleRowsChange,
 }: SessionsTableProps) {
   const t = useTranslations('sessions');
   const tRel = useTranslations('relativeTime');
@@ -66,6 +68,10 @@ export function SessionsTable({
       return { key, direction: key === 'lastActivity' ? 'desc' : 'asc' };
     });
   };
+
+  useEffect(() => {
+    onVisibleRowsChange?.(sortedSessions);
+  }, [onVisibleRowsChange, sortedSessions]);
 
   return (
     <>

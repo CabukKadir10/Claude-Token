@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Aggregation } from '@/domain/entities/aggregation';
+import type { Project } from '@/domain/entities/project';
 import { ProjectsTable } from '@/presentation/components/data/projects-table';
 import { SessionsTable } from '@/presentation/components/data/sessions-table';
 import { TopProjectsList } from '@/presentation/components/data/top-projects-list';
@@ -11,9 +12,10 @@ import { Card, CardContent } from '@/presentation/components/ui/card';
 interface ProjectsViewProps {
   readonly aggregation: Aggregation;
   readonly hasData: boolean;
+  readonly onVisibleRowsChange?: (rows: ReadonlyArray<Project>) => void;
 }
 
-export function ProjectsView({ aggregation, hasData }: ProjectsViewProps) {
+export function ProjectsView({ aggregation, hasData, onVisibleRowsChange }: ProjectsViewProps) {
   const t = useTranslations('projects');
   const [selectedProjectKey, setSelectedProjectKey] = useState<string | null>(null);
 
@@ -51,6 +53,7 @@ export function ProjectsView({ aggregation, hasData }: ProjectsViewProps) {
             projects={aggregation.projects}
             selectedProjectKey={selectedProjectKey}
             onSelectProject={setSelectedProjectKey}
+            onVisibleRowsChange={onVisibleRowsChange}
           />
         </div>
       </div>

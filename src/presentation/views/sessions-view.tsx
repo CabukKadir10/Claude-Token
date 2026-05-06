@@ -2,17 +2,19 @@
 
 import { useTranslations } from 'next-intl';
 import type { Aggregation } from '@/domain/entities/aggregation';
+import type { Session } from '@/domain/entities/session';
 import { Card, CardContent } from '@/presentation/components/ui/card';
 import { SessionsTable } from '@/presentation/components/data/sessions-table';
 
 interface SessionsViewProps {
   readonly aggregation: Aggregation;
   readonly hasData: boolean;
+  readonly onVisibleRowsChange?: (rows: ReadonlyArray<Session>) => void;
 }
 
-export function SessionsView({ aggregation, hasData }: SessionsViewProps) {
+export function SessionsView({ aggregation, hasData, onVisibleRowsChange }: SessionsViewProps) {
   if (!hasData) return <EmptyState />;
-  return <SessionsTable sessions={aggregation.sessions} />;
+  return <SessionsTable sessions={aggregation.sessions} onVisibleRowsChange={onVisibleRowsChange} />;
 }
 
 function EmptyState() {

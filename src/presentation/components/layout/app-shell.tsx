@@ -9,7 +9,7 @@ interface AppShellProps {
   initialView?: ViewId;
   onAction?: (id: ActionId) => void;
   /** Optional content rendered in the topbar's action slot (e.g. global filters). */
-  topbarActions?: React.ReactNode;
+  topbarActions?: React.ReactNode | ((active: ViewId) => React.ReactNode);
   children: (active: ViewId) => React.ReactNode;
 }
 
@@ -35,6 +35,8 @@ export function AppShell({
   const tViews = useTranslations('views');
   const [view, setView] = useState<ViewId>(initialView);
   const key = VIEW_KEY[view];
+  const resolvedTopbarActions =
+    typeof topbarActions === 'function' ? topbarActions(view) : topbarActions;
 
   return (
     <div className="flex min-h-screen">
@@ -43,7 +45,7 @@ export function AppShell({
         <Topbar
           title={tViews(`${key}.title`)}
           subtitle={tViews(`${key}.subtitle`)}
-          actions={topbarActions}
+          actions={resolvedTopbarActions}
         />
         <main className="flex-1 px-6 py-6">{children(view)}</main>
       </div>
