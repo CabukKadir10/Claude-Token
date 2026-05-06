@@ -139,7 +139,9 @@
   },
   "sessions": {
     "title": "Oturumlar",
+    "compactTitle": "Projedeki oturumlar",
     "empty": "Henüz oturum verisi yok.",
+    "emptyForProject": "Bu projede oturum verisi yok.",
     "searchPlaceholder": "Proje veya oturum ID ara...",
     "noResults": "Aramaya uyan oturum bulunamadı.",
     "unknown": "–",
@@ -166,6 +168,20 @@
       "duration": "Süre",
       "model": "Model",
       "close": "Kapat"
+    }
+  },
+  "projects": {
+    "title": "Projeler",
+    "empty": "Henüz proje verisi yok.",
+    "selectProject": "Oturumları görmek için bir proje seçin.",
+    "selectedProject": "Seçili proje: {name}",
+    "columns": {
+      "project": "Proje",
+      "sessions": "Oturum",
+      "messages": "Mesaj",
+      "tokens": "Toplam token",
+      "cost": "Maliyet",
+      "lastActivity": "Son aktivite"
     }
   },
   "placeholder": {

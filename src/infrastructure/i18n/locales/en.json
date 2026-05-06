@@ -139,7 +139,9 @@
   },
   "sessions": {
     "title": "Sessions",
+    "compactTitle": "Sessions in project",
     "empty": "No session data yet.",
+    "emptyForProject": "No session data for this project.",
     "searchPlaceholder": "Search by project or session ID...",
     "noResults": "No sessions matched your search.",
     "unknown": "–",
@@ -166,6 +168,20 @@
       "duration": "Duration",
       "model": "Model",
       "close": "Close"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "empty": "No project data yet.",
+    "selectProject": "Select a project to view sessions.",
+    "selectedProject": "Selected project: {name}",
+    "columns": {
+      "project": "Project",
+      "sessions": "Sessions",
+      "messages": "Messages",
+      "tokens": "Total tokens",
+      "cost": "Cost",
+      "lastActivity": "Last activity"
     }
   },
   "placeholder": {

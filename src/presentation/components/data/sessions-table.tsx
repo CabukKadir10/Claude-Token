@@ -15,12 +15,18 @@ import { shortSid } from '@/shared/utils/short-sid';
 
 interface SessionsTableProps {
   readonly sessions: ReadonlyArray<Session>;
+  readonly compact?: boolean;
+  readonly projectKeyFilter?: string | null;
 }
 
 type SortKey = 'sid' | 'project' | 'lastActivity' | 'duration' | 'messages' | 'mainModel' | 'tokens' | 'cost';
 type SortDirection = 'asc' | 'desc';
 
-export function SessionsTable({ sessions }: SessionsTableProps) {
+export function SessionsTable({
+  sessions,
+  compact = false,
+  projectKeyFilter = null,
+}: SessionsTableProps) {
   const t = useTranslations('sessions');
   const tRel = useTranslations('relativeTime');
   const { locale } = useLocale();
@@ -32,14 +38,19 @@ export function SessionsTable({ sessions }: SessionsTableProps) {
   });
 
   const normalizedQuery = query.trim().toLocaleLowerCase(locale);
+  const sourceSessions = useMemo(() => {
+    if (!projectKeyFilter) return sessions;
+    return sessions.filter((s) => s.projectKey === projectKeyFilter);
+  }, [projectKeyFilter, sessions]);
+
   const filteredSessions = useMemo(() => {
-    if (!normalizedQuery) return sessions;
-    return sessions.filter((s) => {
+    if (!normalizedQuery) return sourceSessions;
+    return sourceSessions.filter((s) => {
       const inProject = s.projectName.toLocaleLowerCase(locale).includes(normalizedQuery);
       const inId = s.id.toLocaleLowerCase(locale).includes(normalizedQuery);
       return inProject || inId;
     });
-  }, [locale, normalizedQuery, sessions]);
+  }, [locale, normalizedQuery, sourceSessions]);
 
   const sortedSessions = useMemo(() => {
     const arr = [...filteredSessions];
@@ -60,18 +71,22 @@ export function SessionsTable({ sessions }: SessionsTableProps) {
     <>
       <Card>
         <CardHeader className="gap-3">
-        <CardTitle>{t('title')}</CardTitle>
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('searchPlaceholder')}
-            className="max-w-md"
-            aria-label={t('searchPlaceholder')}
-          />
+          <CardTitle>{compact ? t('compactTitle') : t('title')}</CardTitle>
+          {!compact && (
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('searchPlaceholder')}
+              className="max-w-md"
+              aria-label={t('searchPlaceholder')}
+            />
+          )}
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
-          {sessions.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">{t('empty')}</p>
+          {sourceSessions.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              {projectKeyFilter ? t('emptyForProject') : t('empty')}
+            </p>
           ) : sortedSessions.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">{t('noResults')}</p>
           ) : (
@@ -79,19 +94,14 @@ export function SessionsTable({ sessions }: SessionsTableProps) {
               <thead>
                 <tr className="border-b border-border text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   <SortableTh label={t('columns.sid')} sort={sort} column="sid" onToggle={toggleSort} />
-                  <SortableTh label={t('columns.project')} sort={sort} column="project" onToggle={toggleSort} />
+                  {!projectKeyFilter && (
+                    <SortableTh label={t('columns.project')} sort={sort} column="project" onToggle={toggleSort} />
+                  )}
                   <SortableTh
                     label={t('columns.lastActivity')}
                     sort={sort}
                     column="lastActivity"
                     onToggle={toggleSort}
-                  />
-                  <SortableTh
-                    label={t('columns.duration')}
-                    sort={sort}
-                    column="duration"
-                    onToggle={toggleSort}
-                    className="text-right"
                   />
                   <SortableTh
                     label={t('columns.messages')}
@@ -100,12 +110,23 @@ export function SessionsTable({ sessions }: SessionsTableProps) {
                     onToggle={toggleSort}
                     className="text-right"
                   />
-                  <SortableTh
-                    label={t('columns.mainModel')}
-                    sort={sort}
-                    column="mainModel"
-                    onToggle={toggleSort}
-                  />
+                  {!compact && (
+                    <>
+                      <SortableTh
+                        label={t('columns.duration')}
+                        sort={sort}
+                        column="duration"
+                        onToggle={toggleSort}
+                        className="text-right"
+                      />
+                      <SortableTh
+                        label={t('columns.mainModel')}
+                        sort={sort}
+                        column="mainModel"
+                        onToggle={toggleSort}
+                      />
+                    </>
+                  )}
                   <SortableTh
                     label={t('columns.tokens')}
                     sort={sort}
@@ -142,19 +163,25 @@ export function SessionsTable({ sessions }: SessionsTableProps) {
                       <td className="px-4 py-2.5 font-mono text-xs text-foreground" title={s.id}>
                         {shortSid(s.id)}
                       </td>
-                      <td className="max-w-64 truncate px-4 py-2.5 text-foreground" title={s.projectName}>
-                        {s.projectName}
-                      </td>
+                      {!projectKeyFilter && (
+                        <td className="max-w-64 truncate px-4 py-2.5 text-foreground" title={s.projectName}>
+                          {s.projectName}
+                        </td>
+                      )}
                       <td className="px-4 py-2.5 text-muted-foreground">{rel}</td>
-                      <td className="px-4 py-2.5 text-right font-mono tabular-nums text-muted-foreground">
-                        {duration}
-                      </td>
                       <td className="px-4 py-2.5 text-right font-mono tabular-nums text-muted-foreground">
                         {s.messages.toLocaleString(locale)}
                       </td>
-                      <td className="px-4 py-2.5 text-foreground" title={mainModel}>
-                        <span className="inline-block max-w-44 truncate align-bottom">{mainModel}</span>
-                      </td>
+                      {!compact && (
+                        <>
+                          <td className="px-4 py-2.5 text-right font-mono tabular-nums text-muted-foreground">
+                            {duration}
+                          </td>
+                          <td className="px-4 py-2.5 text-foreground" title={mainModel}>
+                            <span className="inline-block max-w-44 truncate align-bottom">{mainModel}</span>
+                          </td>
+                        </>
+                      )}
                       <td className="px-4 py-2.5 text-right font-mono tabular-nums text-muted-foreground">
                         {fmtCompact(totalTokens(s.tokens))}
                       </td>

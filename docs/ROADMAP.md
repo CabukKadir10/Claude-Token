@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S10 — Sessions view (siralanabilir kolonlar, hizli arama ve satirdan acilan detay drawer tamamlandi).
+> **Son tamamlanan adım:** S11 — Projects view (projeler tablosu, top-5 mini bar listesi ve secili projeye gore kompakt oturum listesi tamamlandi).
 >
-> **Aktif adım:** S11 — Projects view.
+> **Aktif adım:** S12 — By-date view (Tarihe Gore).
 
 ---
 
@@ -41,10 +41,10 @@
 **Kullanıcı olarak**, projelere göre toplam maliyet ve oturum sayısı kırılımını görmek; **böylece** hangi projelere yatırım yaptığımı anlamak istiyorum.
 
 **Kabul kriterleri**
-- [ ] "Projeler" sidebar girişi `ProjectsView`'i açar.
-- [ ] Tablo: proje adı, oturum sayısı, mesaj sayısı, toplam token (compact), maliyet, son aktivite. Sıralanabilir.
-- [ ] Bir projeye tıklayınca alttaki bölme o projenin oturumlarını filtreli olarak gösterir (Sessions tablosunun kompakt bir versiyonu).
-- [ ] Üst tarafta "top 5 proje" mini-bar listesi (mevcut `TopProjectsList` ile aynı görsel dil).
+- [x] "Projeler" sidebar girişi `ProjectsView`'i açar.
+- [x] Tablo: proje adı, oturum sayısı, mesaj sayısı, toplam token (compact), maliyet, son aktivite. Sıralanabilir.
+- [x] Bir projeye tıklayınca alttaki bölme o projenin oturumlarını filtreli olarak gösterir (Sessions tablosunun kompakt bir versiyonu).
+- [x] Üst tarafta "top 5 proje" mini-bar listesi (mevcut `TopProjectsList` ile aynı görsel dil).
 
 **Notlar**
 - Kaynak: `aggregation.projects`.
