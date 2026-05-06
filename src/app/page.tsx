@@ -9,6 +9,7 @@ import { OverviewView } from '@/presentation/views/overview-view';
 import { TimelineView } from '@/presentation/views/timeline-view';
 import { SessionsView } from '@/presentation/views/sessions-view';
 import { ProjectsView } from '@/presentation/views/projects-view';
+import { ByDateView } from '@/presentation/views/by-date-view';
 import { useEvents } from '@/presentation/hooks/use-events';
 import { usePricing } from '@/presentation/hooks/use-pricing';
 import { useAggregation } from '@/presentation/hooks/use-aggregation';
@@ -37,9 +38,14 @@ export default function HomePage() {
           {view === 'projects' && <ProjectsView aggregation={aggregation} hasData={hasData} />}
           {view === 'sessions' && <SessionsView aggregation={aggregation} hasData={hasData} />}
           {view === 'timeline' && <TimelineView aggregation={aggregation} hasData={hasData} />}
-          {view !== 'overview' && view !== 'projects' && view !== 'timeline' && view !== 'sessions' && (
+          {view === 'by-date' && <ByDateView aggregation={aggregation} hasData={hasData} />}
+          {view !== 'overview' &&
+            view !== 'projects' &&
+            view !== 'timeline' &&
+            view !== 'sessions' &&
+            view !== 'by-date' && (
             <ViewPlaceholder view={view} />
-          )}
+            )}
         </div>
       )}
     </AppShell>

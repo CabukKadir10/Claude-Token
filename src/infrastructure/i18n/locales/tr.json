@@ -184,6 +184,31 @@
       "lastActivity": "Son aktivite"
     }
   },
+  "byDate": {
+    "title": "Tarihe göre tablo",
+    "empty": "Henüz tarih bazlı veri yok.",
+    "emptyState": {
+      "title": "Henüz veri yok",
+      "subtitle": "Tarih bazlı tabloyu görmek için önce bir jsonl veri kaynağı yükleyin."
+    },
+    "period": {
+      "daily": "Günlük",
+      "weekly": "Haftalık",
+      "monthly": "Aylık"
+    },
+    "columns": {
+      "period": "Tarih",
+      "cost": "Maliyet",
+      "total": "Toplam",
+      "input": "Girdi",
+      "output": "Çıktı",
+      "cacheRead": "Önbk. okuma",
+      "cacheWrite": "Önbk. yazma",
+      "messages": "Mesaj",
+      "sessions": "Oturum",
+      "projects": "Proje"
+    }
+  },
   "placeholder": {
     "viewWillRender": "{view} görünümü içeriği burada renderlanacak."
   },

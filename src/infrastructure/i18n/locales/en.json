@@ -184,6 +184,31 @@
       "lastActivity": "Last activity"
     }
   },
+  "byDate": {
+    "title": "By-date table",
+    "empty": "No date-based data yet.",
+    "emptyState": {
+      "title": "No data yet",
+      "subtitle": "Load a jsonl data source first to view date-based rows."
+    },
+    "period": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "columns": {
+      "period": "Date",
+      "cost": "Cost",
+      "total": "Total",
+      "input": "Input",
+      "output": "Output",
+      "cacheRead": "Cache-R",
+      "cacheWrite": "Cache-W",
+      "messages": "Messages",
+      "sessions": "Sessions",
+      "projects": "Projects"
+    }
+  },
   "placeholder": {
     "viewWillRender": "{view} view will render here."
   },

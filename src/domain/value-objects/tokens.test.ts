@@ -5,6 +5,7 @@ import {
   addTokens,
   accumulateTokens,
   totalTokens,
+  totalCacheWriteTokens,
   isEmpty,
   ZERO_TOKENS,
 } from './tokens';
@@ -62,6 +63,12 @@ describe('totalTokens', () => {
 
   it('is zero for empty tokens', () => {
     expect(totalTokens(emptyTokens())).toBe(0);
+  });
+});
+
+describe('totalCacheWriteTokens', () => {
+  it('sums cache write tiers only', () => {
+    expect(totalCacheWriteTokens(make({ cacheWrite: 8, cacheWrite1h: 16, input: 100 }))).toBe(24);
   });
 });
 

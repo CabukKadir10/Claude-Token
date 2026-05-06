@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S11 — Projects view (projeler tablosu, top-5 mini bar listesi ve secili projeye gore kompakt oturum listesi tamamlandi).
+> **Son tamamlanan adım:** S12 — By-date view (Tarihe Gore: gunluk/haftalik/aylik gruplama, siralanabilir tablo ve ISO hafta/ay anahtari tamamlandi).
 >
-> **Aktif adım:** S12 — By-date view (Tarihe Gore).
+> **Aktif adım:** S13 — Pricing editor.
 
 ---
 
@@ -63,11 +63,11 @@
 **Kullanıcı olarak**, günlük / haftalık / aylık gruplandırma ile ham aktiviteyi tablo halinde görmek; **böylece** belirli bir aralığa zoom yapabileyim.
 
 **Kabul kriterleri**
-- [ ] Sidebar "Tarihe Göre" girişi `ByDateView`'i açar.
-- [ ] Üstte üç buton: Günlük / Haftalık / Aylık.
-- [ ] Tablo: tarih (veya ISO hafta / ay), maliyet, toplam, input, output, cache-r, cache-w, mesaj, oturum, proje. Sıralanabilir.
-- [ ] Hafta = ISO 8601 (Pazartesi başlangıç). Ay = `YYYY-MM`.
-- [ ] Boş günler **tabloda gösterilmez** (timeline gap-fill'inden farklı: tabloda gürültü yapar).
+- [x] Sidebar "Tarihe Göre" girişi `ByDateView`'i açar.
+- [x] Üstte üç buton: Günlük / Haftalık / Aylık.
+- [x] Tablo: tarih (veya ISO hafta / ay), maliyet, toplam, input, output, cache-r, cache-w, mesaj, oturum, proje. Sıralanabilir.
+- [x] Hafta = ISO 8601 (Pazartesi başlangıç). Ay = `YYYY-MM`.
+- [x] Boş günler **tabloda gösterilmez** (timeline gap-fill'inden farklı: tabloda gürültü yapar).
 - [ ] CSV indir butonu (opsiyonel, S15'te de yapılabilir).
 
 **Notlar**

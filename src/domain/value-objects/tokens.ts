@@ -48,6 +48,10 @@ export function totalTokens(t: Tokens): number {
   return t.input + t.output + t.cacheRead + t.cacheWrite + t.cacheWrite1h;
 }
 
+export function totalCacheWriteTokens(t: Tokens): number {
+  return t.cacheWrite + t.cacheWrite1h;
+}
+
 export function isEmpty(t: Tokens): boolean {
   return totalTokens(t) === 0;
 }
