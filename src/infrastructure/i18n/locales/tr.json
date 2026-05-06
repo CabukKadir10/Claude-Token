@@ -140,6 +140,9 @@
   "sessions": {
     "title": "Oturumlar",
     "empty": "Henüz oturum verisi yok.",
+    "searchPlaceholder": "Proje veya oturum ID ara...",
+    "noResults": "Aramaya uyan oturum bulunamadı.",
+    "unknown": "–",
     "columns": {
       "sid": "Oturum",
       "project": "Proje",
@@ -149,6 +152,20 @@
       "mainModel": "Ana model",
       "tokens": "Toplam token",
       "cost": "Maliyet"
+    },
+    "detail": {
+      "title": "Oturum detayı",
+      "emptyDescription": "Görüntülenecek bir oturum seçilmedi.",
+      "metaTitle": "Meta bilgiler",
+      "kpisTitle": "KPI",
+      "modelsTitle": "Model kırılımı",
+      "sessionId": "Oturum ID",
+      "project": "Proje",
+      "firstTs": "İlk aktivite",
+      "lastTs": "Son aktivite",
+      "duration": "Süre",
+      "model": "Model",
+      "close": "Kapat"
     }
   },
   "placeholder": {

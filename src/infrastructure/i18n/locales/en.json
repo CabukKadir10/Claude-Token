@@ -140,6 +140,9 @@
   "sessions": {
     "title": "Sessions",
     "empty": "No session data yet.",
+    "searchPlaceholder": "Search by project or session ID...",
+    "noResults": "No sessions matched your search.",
+    "unknown": "–",
     "columns": {
       "sid": "Session",
       "project": "Project",
@@ -149,6 +152,20 @@
       "mainModel": "Main model",
       "tokens": "Total tokens",
       "cost": "Cost"
+    },
+    "detail": {
+      "title": "Session details",
+      "emptyDescription": "No session selected.",
+      "metaTitle": "Metadata",
+      "kpisTitle": "KPIs",
+      "modelsTitle": "Model breakdown",
+      "sessionId": "Session ID",
+      "project": "Project",
+      "firstTs": "First activity",
+      "lastTs": "Last activity",
+      "duration": "Duration",
+      "model": "Model",
+      "close": "Close"
     }
   },
   "placeholder": {
