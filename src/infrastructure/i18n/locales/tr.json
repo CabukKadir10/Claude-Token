@@ -137,6 +137,20 @@
       "tokens": "token"
     }
   },
+  "sessions": {
+    "title": "Oturumlar",
+    "empty": "Henüz oturum verisi yok.",
+    "columns": {
+      "sid": "Oturum",
+      "project": "Proje",
+      "lastActivity": "Son aktivite",
+      "duration": "Süre",
+      "messages": "Mesaj",
+      "mainModel": "Ana model",
+      "tokens": "Toplam token",
+      "cost": "Maliyet"
+    }
+  },
   "placeholder": {
     "viewWillRender": "{view} görünümü içeriği burada renderlanacak."
   },

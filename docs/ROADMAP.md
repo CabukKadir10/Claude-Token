@@ -3,6 +3,8 @@
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
 > **Son tamamlanan adım:** Adım 9 — Timeline view (günlük + saatlik chart, en yoğun günler) ve `useFilters` ile topbar tarih aralığı filtresi.
+>
+> **Aktif adım:** S10 — Sessions view (kismen tamamlandi). Mevcut durum: temel `SessionsView` + tablo kolonlari + i18n anahtarlari baglandi; siralama, hizli arama ve drawer sonraki adimda.
 
 ---
 
@@ -11,12 +13,12 @@
 **Kullanıcı olarak**, hangi oturumun ne kadar token ve maliyet ürettiğini, hangi modeli kullandığını ve ne zaman olduğunu görmek istiyorum; **böylece** pahalı oturumları tek tıkla bulup gözden geçirebileyim.
 
 **Kabul kriterleri**
-- [ ] Sol kenar çubuğundaki "Oturumlar" girişi `SessionsView`'i açar.
-- [ ] Tablo sütunları: oturum kısa-id'si, proje, son aktivite (relative), süre, mesaj sayısı, ana model, toplam token (compact), maliyet.
+- [x] Sol kenar çubuğundaki "Oturumlar" girişi `SessionsView`'i açar.
+- [x] Tablo sütunları: oturum kısa-id'si, proje, son aktivite (relative), süre, mesaj sayısı, ana model, toplam token (compact), maliyet.
 - [ ] Sütunlar sıralanabilir (varsayılan: son aktivite desc).
 - [ ] Hızlı arama (proje adı veya session id alt-stringi).
 - [ ] Bir satıra tıklayınca tek-oturum drawer'ı açılır: model bazlı kırılım, ilk/son ts, süre, KPI'lar.
-- [ ] Tarih aralığı filtresi mevcut aggregation'dan geldiği için view ek bir şey yapmıyor (sadece `aggregation.sessions`'ı kullanıyor).
+- [x] Tarih aralığı filtresi mevcut aggregation'dan geldiği için view ek bir şey yapmıyor (sadece `aggregation.sessions`'ı kullanıyor).
 
 **Notlar**
 - `aggregation.sessions` zaten sıralı (son aktivite desc) geliyor; tablo başlangıç datasını oradan al.

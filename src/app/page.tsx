@@ -7,6 +7,7 @@ import { Dropzone } from '@/presentation/components/data/dropzone';
 import { DateRangeFilter } from '@/presentation/components/filters/date-range-filter';
 import { OverviewView } from '@/presentation/views/overview-view';
 import { TimelineView } from '@/presentation/views/timeline-view';
+import { SessionsView } from '@/presentation/views/sessions-view';
 import { useEvents } from '@/presentation/hooks/use-events';
 import { usePricing } from '@/presentation/hooks/use-pricing';
 import { useAggregation } from '@/presentation/hooks/use-aggregation';
@@ -32,8 +33,11 @@ export default function HomePage() {
             onClear={events.clear}
           />
           {view === 'overview' && <OverviewView aggregation={aggregation} hasData={hasData} />}
+          {view === 'sessions' && <SessionsView aggregation={aggregation} hasData={hasData} />}
           {view === 'timeline' && <TimelineView aggregation={aggregation} hasData={hasData} />}
-          {view !== 'overview' && view !== 'timeline' && <ViewPlaceholder view={view} />}
+          {view !== 'overview' && view !== 'timeline' && view !== 'sessions' && (
+            <ViewPlaceholder view={view} />
+          )}
         </div>
       )}
     </AppShell>

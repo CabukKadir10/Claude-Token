@@ -137,6 +137,20 @@
       "tokens": "tokens"
     }
   },
+  "sessions": {
+    "title": "Sessions",
+    "empty": "No session data yet.",
+    "columns": {
+      "sid": "Session",
+      "project": "Project",
+      "lastActivity": "Last activity",
+      "duration": "Duration",
+      "messages": "Messages",
+      "mainModel": "Main model",
+      "tokens": "Total tokens",
+      "cost": "Cost"
+    }
+  },
   "placeholder": {
     "viewWillRender": "{view} view will render here."
   },

@@ -26,6 +26,8 @@ Bu kural tum oturumlarda uygulanir.
 
 - Degisiklikleri minimum kapsamla yap; alakasiz dosyalara dokunma.
 - Buyuk degisikliklerden sonra lint + typecheck + test calistir ve sonucu raporla.
+- Her gelistirme adimindan sonra `docs/ROADMAP.md` uzerinde ilerleme durumunu guncelle (hangi adimda kalindigi net gorunsun).
+- Kullanici aksini belirtmedikce her tamamlanan adimi commit ile kayda al.
 
 ## Kisa Ornekler
 
