@@ -143,6 +143,15 @@
     "hourly": {
       "title": "Saatlik dağılım"
     },
+    "weekHeatmap": {
+      "title": "Hafta günü × saat ısı haritası",
+      "subtitle": "Renk yoğunluğu toplam token miktarını gösterir.",
+      "tooltip": {
+        "tokens": "Token",
+        "cost": "Maliyet",
+        "messages": "mesaj"
+      }
+    },
     "topDays": {
       "title": "En yoğun günler",
       "empty": "Henüz zaman damgası verisi yok.",

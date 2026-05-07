@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S16 — Static export ve GitHub Pages dağıtımı (BUILD_STATIC ile `next export` uyumlu basePath/assetPrefix ayarı, push-on-main deploy workflow'u, README deploy rehberi ve locale için cookie/localStorage fallback).
+> **Son tamamlanan adım:** S17 — Saatlik dağılıma "günün saati × hafta günü" heatmap (aggregation'a 7×24 `weekHourly` bucket eklenmesi, Timeline view'a heatmap kartı ve tooltip'te cost + token + mesaj gösterimi).
 >
-> **Aktif adım:** S17 — Saatlik dağılıma "günün saati × hafta günü" heatmap.
+> **Aktif adım:** S18 — Erişilebilirlik geçişi.
 
 ---
 
@@ -177,9 +177,9 @@
 **Kullanıcı olarak**, hangi gün-saat kombinasyonunda yoğunlaştığımı (örn. Pazartesi 10:00) görmek istiyorum.
 
 **Kabul kriterleri**
-- [ ] Timeline view'a 7×24'lük heatmap kartı eklendi.
-- [ ] Hücre rengi total token'a göre; tooltip cost + token + mesaj sayısı.
-- [ ] Aggregation'a yeni bir bucket (`weekHourly: number[7][24]`) eklendi; mevcut single-pass aggregator'ı bozmadan extend et.
+- [x] Timeline view'a 7×24'lük heatmap kartı eklendi.
+- [x] Hücre rengi total token'a göre; tooltip cost + token + mesaj sayısı.
+- [x] Aggregation'a yeni bir bucket (`weekHourly: number[7][24]`) eklendi; mevcut single-pass aggregator'ı bozmadan extend et.
 
 **Dosyalar (yeni / etkilenen)**
 - `src/domain/entities/week-hourly-bucket.ts`

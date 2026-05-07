@@ -5,6 +5,7 @@ import type { Session } from './session';
 import type { DailyBucket } from './daily-bucket';
 import type { HourlyBucket } from './hourly-bucket';
 import type { ModelBucket } from './model-bucket';
+import type { WeekHourlyBucket } from './week-hourly-bucket';
 
 /**
  * Top-level totals across the active filter range. Independent of any view.
@@ -33,5 +34,7 @@ export interface Aggregation {
   readonly daily: ReadonlyArray<DailyBucket>;
   /** Always length 24, indexed by hour-of-day. */
   readonly hourly: ReadonlyArray<HourlyBucket>;
+  /** Always 7x24, Monday-first week-day index and local-time hour index. */
+  readonly weekHourly: ReadonlyArray<ReadonlyArray<WeekHourlyBucket>>;
   readonly byModel: ReadonlyArray<ModelBucket>;
 }

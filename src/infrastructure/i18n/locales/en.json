@@ -143,6 +143,15 @@
     "hourly": {
       "title": "Hourly distribution"
     },
+    "weekHeatmap": {
+      "title": "Weekday × hour heatmap",
+      "subtitle": "Color intensity represents total tokens.",
+      "tooltip": {
+        "tokens": "Tokens",
+        "cost": "Cost",
+        "messages": "msgs"
+      }
+    },
     "topDays": {
       "title": "Busiest days",
       "empty": "No timestamp data yet.",

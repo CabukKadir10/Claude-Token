@@ -2,7 +2,6 @@ import type { UsageEvent } from '../../domain/entities/usage-event';
 import type { Project } from '../../domain/entities/project';
 import type { Session, SessionModelBreakdown } from '../../domain/entities/session';
 import type { DailyBucket } from '../../domain/entities/daily-bucket';
-import type { HourlyBucket } from '../../domain/entities/hourly-bucket';
 import type { ModelBucket } from '../../domain/entities/model-bucket';
 import type { Aggregation } from '../../domain/entities/aggregation';
 import type { Pricing } from '../../domain/value-objects/pricing';
@@ -40,6 +39,15 @@ export function aggregateEvents(input: AggregateEventsInput): Aggregation {
     cost: 0,
     messages: 0,
   }));
+  const weekHourlyAcc: WeekHourlyAcc[][] = Array.from({ length: 7 }, (_, weekDay) =>
+    Array.from({ length: 24 }, (_, hour) => ({
+      weekDay,
+      hour,
+      tokens: emptyTokens(),
+      cost: 0,
+      messages: 0,
+    })),
+  );
   const modelAcc = new Map<ModelTier, ModelAcc>();
 
   const totalsTokens = emptyTokens();
@@ -67,7 +75,10 @@ export function aggregateEvents(input: AggregateEventsInput): Aggregation {
     accumulateProject(projectAcc, e, cost.total);
     accumulateSession(sessionAcc, e, cost.total);
     if (e.day !== null) accumulateDaily(dailyAcc, e, cost.total);
-    if (e.ts !== null) accumulateHourly(hourlyAcc, e, cost.total);
+    if (e.ts !== null) {
+      accumulateHourly(hourlyAcc, e, cost.total);
+      accumulateWeekHourly(weekHourlyAcc, e, cost.total);
+    }
     accumulateModel(modelAcc, e, cost.total);
   }
 
@@ -100,6 +111,7 @@ export function aggregateEvents(input: AggregateEventsInput): Aggregation {
     sessions,
     daily,
     hourly: hourlyAcc,
+    weekHourly: weekHourlyAcc,
     byModel,
   };
 }
@@ -147,6 +159,14 @@ interface DailyAcc {
 }
 
 interface HourlyAcc {
+  hour: number;
+  tokens: Tokens;
+  cost: number;
+  messages: number;
+}
+
+interface WeekHourlyAcc {
+  weekDay: number;
   hour: number;
   tokens: Tokens;
   cost: number;
@@ -255,6 +275,22 @@ function accumulateHourly(buckets: HourlyAcc[], e: UsageEvent, cost: number): vo
   accumulateTokens(h.tokens, e.tokens);
   h.cost += cost;
   h.messages += 1;
+}
+
+function accumulateWeekHourly(buckets: WeekHourlyAcc[][], e: UsageEvent, cost: number): void {
+  // Caller guarantees e.ts !== null
+  const date = new Date(e.ts as number);
+  const hour = date.getHours();
+  const weekDay = toMondayFirstWeekDay(date.getDay());
+  const cell = buckets[weekDay]![hour]!;
+  accumulateTokens(cell.tokens, e.tokens);
+  cell.cost += cost;
+  cell.messages += 1;
+}
+
+function toMondayFirstWeekDay(day: number): number {
+  // JS getDay(): Sunday=0..Saturday=6 -> Monday-first 0..6
+  return (day + 6) % 7;
 }
 
 function accumulateModel(map: Map<ModelTier, ModelAcc>, e: UsageEvent, cost: number): void {

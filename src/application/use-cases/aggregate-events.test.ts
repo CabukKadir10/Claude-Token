@@ -30,6 +30,8 @@ describe('aggregateEvents', () => {
     expect(a.daily).toHaveLength(0);
     expect(a.byModel).toHaveLength(0);
     expect(a.hourly).toHaveLength(24);
+    expect(a.weekHourly).toHaveLength(7);
+    for (const row of a.weekHourly) expect(row).toHaveLength(24);
   });
 
   it('groups by project and counts distinct sessions', () => {
@@ -76,6 +78,24 @@ describe('aggregateEvents', () => {
       if (i === hour) continue;
       expect(a.hourly[i]?.tokens.input).toBe(0);
     }
+  });
+
+  it('builds 7x24 week-hourly buckets (monday-first)', () => {
+    const mondayTen = at('2026-04-27T10:15:00');
+    const sundayTwentyThree = at('2026-05-03T23:45:00');
+    const events = [
+      ev({ ts: mondayTen, tokens: { input: 11, output: 0, cacheRead: 0, cacheWrite: 0, cacheWrite1h: 0 } }),
+      ev({ ts: sundayTwentyThree, tokens: { input: 0, output: 22, cacheRead: 0, cacheWrite: 0, cacheWrite1h: 0 } }),
+    ];
+    const a = aggregateEvents({ events, pricing: DEFAULT_PRICING });
+
+    expect(a.weekHourly).toHaveLength(7);
+    for (const row of a.weekHourly) expect(row).toHaveLength(24);
+
+    // Monday=0 in monday-first indexing
+    expect(a.weekHourly[0]?.[10]?.tokens.input).toBe(11);
+    // Sunday=6 in monday-first indexing
+    expect(a.weekHourly[6]?.[23]?.tokens.output).toBe(22);
   });
 
   it('builds daily buckets sorted ascending', () => {
