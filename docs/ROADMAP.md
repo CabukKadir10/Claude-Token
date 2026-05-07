@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S15 — CSV / JSON dışa aktarma (Sessions, Projects ve By-date görünümünde topbar "Dışa aktar" menüsü; CSV BOM'lu UTF-8 ve JSON pretty-print; export aktif filtredeki görünür satırları indiriyor).
+> **Son tamamlanan adım:** S16 — Static export ve GitHub Pages dağıtımı (BUILD_STATIC ile `next export` uyumlu basePath/assetPrefix ayarı, push-on-main deploy workflow'u, README deploy rehberi ve locale için cookie/localStorage fallback).
 >
-> **Aktif adım:** S16 — Static export ve GitHub Pages dağıtımı.
+> **Aktif adım:** S17 — Saatlik dağılıma "günün saati × hafta günü" heatmap.
 
 ---
 
@@ -153,11 +153,11 @@
 **Kullanıcı olarak**, projeyi GitHub'a koyup statik bir Pages site olarak yayınlamak; **böylece** repo URL'sinden direkt panoyu açabilmek istiyorum.
 
 **Kabul kriterleri**
-- [ ] `npm run build:static` (`BUILD_STATIC=1 next build`) statik export üretir.
-- [ ] `next.config.mjs` static export modunda doğru `basePath` ve `assetPrefix` kullanır.
-- [ ] GitHub Actions workflow: push'ta build → `gh-pages` branch'ine deploy.
-- [ ] README'de "live demo" linki + "kendi tarayıcında çalıştırma" yönergesi.
-- [ ] Locale (TR/EN) tahmini sunucu yokken de çalışıyor (cookie / localStorage fallback).
+- [x] `npm run build:static` (`BUILD_STATIC=1 next build`) statik export üretir.
+- [x] `next.config.mjs` static export modunda doğru `basePath` ve `assetPrefix` kullanır.
+- [x] GitHub Actions workflow: push'ta build → `gh-pages` branch'ine deploy.
+- [x] README'de "live demo" linki + "kendi tarayıcında çalıştırma" yönergesi.
+- [x] Locale (TR/EN) tahmini sunucu yokken de çalışıyor (cookie / localStorage fallback).
 
 **Notlar**
 - `package.json` zaten `cross-env BUILD_STATIC=1 next build` script'ini içeriyor; tetik tarafı eksik.

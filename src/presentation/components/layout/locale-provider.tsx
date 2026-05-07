@@ -7,6 +7,26 @@ import { MESSAGES } from '@/infrastructure/i18n/messages';
 import { localStorageStore } from '@/infrastructure/storage/local-storage-store';
 import { LANGUAGE_STORAGE_KEY } from '@/shared/constants/storage-keys';
 
+const LOCALE_COOKIE_KEY = 'claude-token-dashboard-locale';
+
+function readLocaleFromCookie(): Locale | null {
+  if (typeof document === 'undefined') return null;
+
+  const match = document.cookie
+    .split(';')
+    .map((entry) => entry.trim())
+    .find((entry) => entry.startsWith(`${LOCALE_COOKIE_KEY}=`));
+
+  if (!match) return null;
+  const value = decodeURIComponent(match.slice(`${LOCALE_COOKIE_KEY}=`.length));
+  return isLocale(value) ? value : null;
+}
+
+function writeLocaleCookie(locale: Locale): void {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${LOCALE_COOKIE_KEY}=${encodeURIComponent(locale)}; path=/; max-age=31536000; samesite=lax`;
+}
+
 interface LocaleContextValue {
   readonly locale: Locale;
   readonly setLocale: (next: Locale) => void;
@@ -43,9 +63,12 @@ export function LocaleProvider({ serverLocale, children }: LocaleProviderProps) 
 
   useEffect(() => {
     const saved = localStorageStore.get(LANGUAGE_STORAGE_KEY);
-    if (isLocale(saved) && saved !== initial) {
-      setLocaleState(saved);
-      document.documentElement.lang = saved;
+    const cookieLocale = readLocaleFromCookie();
+    const resolved = isLocale(saved) ? saved : cookieLocale;
+
+    if (resolved && resolved !== initial) {
+      setLocaleState(resolved);
+      document.documentElement.lang = resolved;
     }
   }, [initial]);
 
@@ -53,6 +76,7 @@ export function LocaleProvider({ serverLocale, children }: LocaleProviderProps) 
     setLocaleState(next);
     document.documentElement.lang = next;
     localStorageStore.set(LANGUAGE_STORAGE_KEY, next);
+    writeLocaleCookie(next);
   }, []);
 
   const value: LocaleContextValue = { locale, setLocale, locales: LOCALES };

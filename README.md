@@ -11,6 +11,8 @@ A lightweight web dashboard that analyses your Claude Code session token usage a
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
+[Canlı Demo / Live Demo](https://<kullanici>.github.io/<repo-adi>/)
+  
 [Türkçe](#türkçe) · [English](#english)
 
 </div>
@@ -47,6 +49,21 @@ Tarayıcıda açıldıktan sonra `~/.claude/projects` klasörünü pano üzerine
 ```bash
 npm run build         # Vercel/Node deploy için
 npm run build:static  # Statik export — herhangi bir static host'ta çalışır
+```
+
+### GitHub Pages dağıtımı
+
+Bu repo `main` branch'ine her push'ta otomatik olarak `gh-pages` branch'ine deploy edilir.
+
+1. GitHub'da **Settings → Pages → Source** altında `gh-pages` branch'ini seçin.
+2. Actions izninin `Read and write permissions` olduğundan emin olun.
+3. İlk deploy sonrası demo URL'niz: `https://<kullanici>.github.io/<repo-adi>/`.
+
+Yerelde statik çıktıyı doğrulamak için:
+
+```bash
+npm run build:static
+npx serve out
 ```
 
 ### Komutlar
@@ -130,6 +147,21 @@ Once it's open, drag your `~/.claude/projects` folder onto the dashboard (on Win
 ```bash
 npm run build         # for Vercel / Node deploy
 npm run build:static  # static export — runs on any static host
+```
+
+### GitHub Pages deployment
+
+Every push to `main` builds and deploys the static export to the `gh-pages` branch.
+
+1. In GitHub, open **Settings → Pages → Source** and select `gh-pages`.
+2. Ensure Actions has `Read and write permissions`.
+3. After the first run, your live URL is `https://<your-user>.github.io/<repo-name>/`.
+
+To verify the static output locally:
+
+```bash
+npm run build:static
+npx serve out
 ```
 
 ### Scripts
