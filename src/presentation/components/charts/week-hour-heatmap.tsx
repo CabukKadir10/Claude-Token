@@ -105,7 +105,7 @@ function Row({
           <button
             key={`${cell.weekDay}-${cell.hour}`}
             type="button"
-            className="h-5 rounded-[3px] border border-border/50 bg-accent"
+            className="h-5 rounded-[3px] border border-border/50 bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             style={{ opacity: intensity }}
             onMouseEnter={() => onHover(cell)}
             onMouseLeave={() => onHover(null)}

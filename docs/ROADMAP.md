@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S17 — Saatlik dağılıma "günün saati × hafta günü" heatmap (aggregation'a 7×24 `weekHourly` bucket eklenmesi, Timeline view'a heatmap kartı ve tooltip'te cost + token + mesaj gösterimi).
+> **Son tamamlanan adım:** S18 — Erişilebilirlik geçişi (interaktif elementlerde `aria-label` iyileştirmeleri, tablolar için klavye odak/etkileşim, chart'lara text alternatifi ve Lighthouse erişilebilirlik raporu eklenmesi).
 >
-> **Aktif adım:** S18 — Erişilebilirlik geçişi.
+> **Aktif adım:** S19 — Playwright E2E testleri.
 
 ---
 
@@ -195,14 +195,15 @@
 **Kullanıcı olarak**, ekran okuyucu / klavye ile dolaşırken paneli rahat kullanmak istiyorum.
 
 **Kabul kriterleri**
-- [ ] Tüm interaktif element'lerde anlamlı `aria-label`.
-- [ ] Tab sırası mantıklı; focus ring her zaman görünür.
-- [ ] Donut / bar chart için tabloya text alternatifi (`aria-describedby` veya `<title>`).
-- [ ] Renk kontrastı WCAG AA — özellikle dark mode'da accent + foreground.
-- [ ] Drawer / dialog odak tuzağı (focus trap) çalışıyor; ESC kapatıyor.
+- [x] Tüm interaktif element'lerde anlamlı `aria-label`.
+- [x] Tab sırası mantıklı; focus ring her zaman görünür.
+- [x] Donut / bar chart için tabloya text alternatifi (`aria-describedby` veya `<title>`).
+- [x] Renk kontrastı WCAG AA — özellikle dark mode'da accent + foreground.
+- [x] Drawer / dialog odak tuzağı (focus trap) çalışıyor; ESC kapatıyor.
 
 **Notlar**
 - `axe-core` veya Lighthouse run'ı ile başla; raporu repoya işle.
+- Rapor: `docs/reports/lighthouse-accessibility.md` (Lighthouse accessibility pass sonuç özeti).
 
 **Dosyalar:** her view'a ufak dokunuşlar.
 

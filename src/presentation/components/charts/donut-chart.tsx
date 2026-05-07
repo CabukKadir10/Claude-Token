@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 export interface DonutSlice {
   readonly id: string;
@@ -18,6 +18,8 @@ interface DonutChartProps {
   readonly centerLabel: string;
   /** Pre-formatted value per slice for the legend (e.g. fmtCost output). */
   readonly formatValue?: (value: number) => string;
+  readonly ariaLabel?: string;
+  readonly ariaDescription?: string;
 }
 
 const SIZE = 220;
@@ -34,8 +36,16 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * If `slices` is empty (or all zero), renders a flat ring with a "no data"
  * message so the donut card never collapses.
  */
-export function DonutChart({ slices, centerValue, centerLabel, formatValue }: DonutChartProps) {
+export function DonutChart({
+  slices,
+  centerValue,
+  centerLabel,
+  formatValue,
+  ariaLabel,
+  ariaDescription,
+}: DonutChartProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const descriptionId = useId();
 
   const total = slices.reduce((s, x) => s + x.value, 0);
   const visible = slices.filter((s) => s.value > 0);
@@ -54,11 +64,23 @@ export function DonutChart({ slices, centerValue, centerLabel, formatValue }: Do
   const active = activeId !== null ? visible.find((s) => s.id === activeId) : undefined;
   const activeFraction =
     active !== undefined && total > 0 ? active.value / total : 0;
+  const fallbackDescription =
+    visible.length === 0
+      ? centerLabel
+      : visible.map((slice) => `${slice.label}: ${fmt(slice.value)}`).join(', ');
+  const description = ariaDescription ?? fallbackDescription;
 
   return (
     <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-stretch lg:justify-between">
       <div className="relative shrink-0" style={{ width: SIZE, height: SIZE }}>
-        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img">
+        <svg
+          width={SIZE}
+          height={SIZE}
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          role="img"
+          aria-label={ariaLabel ?? centerLabel}
+          aria-describedby={descriptionId}
+        >
           {/* Track */}
           <circle
             cx={SIZE / 2}
@@ -96,6 +118,9 @@ export function DonutChart({ slices, centerValue, centerLabel, formatValue }: Do
             })}
           </g>
         </svg>
+        <p id={descriptionId} className="sr-only">
+          {description}
+        </p>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           <div className="font-mono text-2xl font-semibold tracking-tight text-foreground">
             {active ? fmt(active.value) : centerValue}

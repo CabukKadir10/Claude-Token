@@ -96,6 +96,8 @@ function ModeSwitcher({
           variant={mode === m ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => setMode(m)}
+          aria-pressed={mode === m}
+          aria-label={t(m)}
         >
           {t(m)}
         </Button>

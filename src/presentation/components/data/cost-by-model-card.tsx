@@ -19,6 +19,7 @@ interface CostByModelCardProps {
  */
 export function CostByModelCard({ byModel, totalCost }: CostByModelCardProps) {
   const t = useTranslations('overview.donut');
+  const tA11y = useTranslations('accessibility');
 
   const slices: ReadonlyArray<DonutSlice> = byModel
     .filter((m) => m.cost > 0)
@@ -43,6 +44,10 @@ export function CostByModelCard({ byModel, totalCost }: CostByModelCardProps) {
             centerValue={fmtCost(totalCost)}
             centerLabel={t('totalCost')}
             formatValue={fmtCost}
+            ariaLabel={t('title')}
+            ariaDescription={tA11y('donutSummary', {
+              summary: slices.map((slice) => `${slice.label} ${fmtCost(slice.value)}`).join(', '),
+            })}
           />
         )}
       </CardContent>

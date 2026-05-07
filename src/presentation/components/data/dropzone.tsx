@@ -189,7 +189,7 @@ function IdleState({
       </div>
       <p className="text-base font-medium">
         {t('titlePrefix')}{' '}
-        <code className="font-mono text-accent">{t('titleFolderName')}</code>{' '}
+        <code className="font-mono text-foreground">{t('titleFolderName')}</code>{' '}
         {t('titleSuffix')}
       </p>
       <p className="max-w-md text-sm text-muted-foreground">{t('subtitle')}</p>

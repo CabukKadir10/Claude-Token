@@ -50,15 +50,22 @@ export function ExportMenu<T extends Record<string, unknown>>({
           'list-none [&::-webkit-details-marker]:hidden',
           disabled && 'pointer-events-none opacity-50',
         )}
+        role="button"
+        aria-label={t('button')}
+        aria-haspopup="menu"
         onClick={(event) => {
           if (disabled) event.preventDefault();
         }}
       >
         {t('button')}
       </summary>
-      <div className="absolute right-0 z-20 mt-1 flex min-w-40 flex-col rounded-md border border-border bg-background p-1 shadow-md">
+      <div
+        role="menu"
+        className="absolute right-0 z-20 mt-1 flex min-w-40 flex-col rounded-md border border-border bg-background p-1 shadow-md"
+      >
         <button
           type="button"
+          role="menuitem"
           className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'justify-start')}
           onClick={() => handleDownload('csv')}
         >
@@ -66,6 +73,7 @@ export function ExportMenu<T extends Record<string, unknown>>({
         </button>
         <button
           type="button"
+          role="menuitem"
           className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'justify-start')}
           onClick={() => handleDownload('json')}
         >

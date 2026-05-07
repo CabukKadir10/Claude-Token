@@ -141,7 +141,14 @@
       }
     },
     "hourly": {
-      "title": "Saatlik dağılım"
+      "title": "Saatlik dağılım",
+      "summary": "Saatlik token ve maliyet dağılımı",
+      "tableCaption": "Saatlik token ve maliyet değerleri",
+      "hourColumn": "Saat",
+      "tooltip": {
+        "tokens": "Token",
+        "cost": "Maliyet"
+      }
     },
     "weekHeatmap": {
       "title": "Hafta günü × saat ısı haritası",
@@ -259,5 +266,13 @@
     "hoursAgo": "{n}sa önce",
     "daysAgo": "{n}g önce",
     "unknown": "–"
+  },
+  "accessibility": {
+    "sortBy": "{column} alanına göre sırala",
+    "sortedAsc": "artan sıralı",
+    "sortedDesc": "azalan sıralı",
+    "openSessionDetail": "{id} oturumu detayını aç",
+    "selectProject": "{name} projesini seç",
+    "donutSummary": "Model maliyet dağılımı: {summary}"
   }
 }

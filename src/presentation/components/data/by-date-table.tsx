@@ -215,15 +215,19 @@ interface SortableThProps {
 }
 
 function SortableTh({ label, column, sort, onToggle, className }: SortableThProps) {
+  const tA11y = useTranslations('accessibility');
   const isActive = sort.key === column;
   const arrow = !isActive ? '↕' : sort.direction === 'asc' ? '↑' : '↓';
+  const a11yState = isActive ? tA11y(sort.direction === 'asc' ? 'sortedAsc' : 'sortedDesc') : '';
+  const ariaSort = isActive ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none';
 
   return (
-    <th className={cn('px-4 py-2 font-medium', className)}>
+    <th className={cn('px-4 py-2 font-medium', className)} aria-sort={ariaSort}>
       <button
         type="button"
-        className="inline-flex items-center gap-1 text-left hover:text-foreground"
+        className="inline-flex items-center gap-1 text-left hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => onToggle(column)}
+        aria-label={`${tA11y('sortBy', { column: label })}${a11yState ? `, ${a11yState}` : ''}`}
       >
         <span>{label}</span>
         <span aria-hidden>{arrow}</span>

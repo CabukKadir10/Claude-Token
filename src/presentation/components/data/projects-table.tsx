@@ -29,6 +29,7 @@ export function ProjectsTable({
 }: ProjectsTableProps) {
   const t = useTranslations('projects');
   const tRel = useTranslations('relativeTime');
+  const tA11y = useTranslations('accessibility');
   const { locale } = useLocale();
   const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection }>({
     key: 'cost',
@@ -119,10 +120,19 @@ export function ProjectsTable({
                   <tr
                     key={p.key}
                     className={cn(
-                      'cursor-pointer border-b border-border transition-colors hover:bg-muted/40 last:border-0',
+                      'cursor-pointer border-b border-border transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring last:border-0',
                       selectedProjectKey === p.key && 'bg-muted/60',
                     )}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={tA11y('selectProject', { name: p.name })}
                     onClick={() => onSelectProject(p.key)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onSelectProject(p.key);
+                      }
+                    }}
                   >
                     <td className="max-w-64 truncate px-4 py-2.5 text-foreground" title={p.key}>
                       {p.name}
@@ -160,15 +170,19 @@ interface SortableThProps {
 }
 
 function SortableTh({ label, column, sort, onToggle, className }: SortableThProps) {
+  const tA11y = useTranslations('accessibility');
   const isActive = sort.key === column;
   const arrow = !isActive ? '↕' : sort.direction === 'asc' ? '↑' : '↓';
+  const a11yState = isActive ? tA11y(sort.direction === 'asc' ? 'sortedAsc' : 'sortedDesc') : '';
+  const ariaSort = isActive ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none';
 
   return (
-    <th className={cn('px-4 py-2 font-medium', className)}>
+    <th className={cn('px-4 py-2 font-medium', className)} aria-sort={ariaSort}>
       <button
         type="button"
-        className="inline-flex items-center gap-1 text-left hover:text-foreground"
+        className="inline-flex items-center gap-1 text-left hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => onToggle(column)}
+        aria-label={`${tA11y('sortBy', { column: label })}${a11yState ? `, ${a11yState}` : ''}`}
       >
         <span>{label}</span>
         <span aria-hidden>{arrow}</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { HourlyBucket } from '@/domain/entities/hourly-bucket';
 import { totalTokens } from '@/domain/value-objects/tokens';
@@ -26,6 +26,7 @@ export function HourBarChart({ hourly }: HourBarChartProps) {
   const t = useTranslations('timeline.hourly');
   const { locale } = useLocale();
   const [hoverHour, setHoverHour] = useState<number | null>(null);
+  const summaryId = useId();
 
   const totals = useMemo(() => hourly.map((b) => totalTokens(b.tokens)), [hourly]);
   const max = useMemo(() => Math.max(1, ...totals), [totals]);
@@ -56,6 +57,8 @@ export function HourBarChart({ hourly }: HourBarChartProps) {
           className="block w-full"
           style={{ height: VIEWBOX_H }}
           role="img"
+          aria-label={t('summary')}
+          aria-describedby={summaryId}
         >
           <g stroke="var(--color-border)" strokeWidth={0.6}>
             {yTicks.map((y) => (
@@ -111,6 +114,25 @@ export function HourBarChart({ hourly }: HourBarChartProps) {
             );
           })}
         </svg>
+        <table id={summaryId} className="sr-only">
+          <caption>{t('tableCaption')}</caption>
+          <thead>
+            <tr>
+              <th>{t('hourColumn')}</th>
+              <th>{t('tooltip.tokens')}</th>
+              <th>{t('tooltip.cost')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hourly.map((bucket) => (
+              <tr key={bucket.hour}>
+                <td>{String(bucket.hour).padStart(2, '0')}:00</td>
+                <td>{fmtFull(totalTokens(bucket.tokens), locale)}</td>
+                <td>{fmtCost(bucket.cost)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </CardContent>
     </Card>
   );

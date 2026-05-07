@@ -31,6 +31,7 @@ export function SessionsTable({
 }: SessionsTableProps) {
   const t = useTranslations('sessions');
   const tRel = useTranslations('relativeTime');
+  const tA11y = useTranslations('accessibility');
   const { locale } = useLocale();
   const [query, setQuery] = useState('');
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
@@ -163,8 +164,17 @@ export function SessionsTable({
                   return (
                     <tr
                       key={`${s.projectKey}:${s.id}`}
-                      className="cursor-pointer border-b border-border transition-colors hover:bg-muted/40 last:border-0"
+                      className="cursor-pointer border-b border-border transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring last:border-0"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={tA11y('openSessionDetail', { id: shortSid(s.id) })}
                       onClick={() => setSelectedSession(s)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setSelectedSession(s);
+                        }
+                      }}
                     >
                       <td className="px-4 py-2.5 font-mono text-xs text-foreground" title={s.id}>
                         {shortSid(s.id)}
@@ -223,15 +233,19 @@ interface SortableThProps {
 }
 
 function SortableTh({ label, column, sort, onToggle, className }: SortableThProps) {
+  const tA11y = useTranslations('accessibility');
   const isActive = sort.key === column;
   const arrow = !isActive ? '↕' : sort.direction === 'asc' ? '↑' : '↓';
+  const a11yState = isActive ? tA11y(sort.direction === 'asc' ? 'sortedAsc' : 'sortedDesc') : '';
+  const ariaSort = isActive ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none';
 
   return (
-    <th className={`px-4 py-2 font-medium ${className ?? ''}`}>
+    <th className={`px-4 py-2 font-medium ${className ?? ''}`} aria-sort={ariaSort}>
       <button
         type="button"
-        className="inline-flex items-center gap-1 text-left hover:text-foreground"
+        className="inline-flex items-center gap-1 text-left hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => onToggle(column)}
+        aria-label={`${tA11y('sortBy', { column: label })}${a11yState ? `, ${a11yState}` : ''}`}
       >
         <span>{label}</span>
         <span aria-hidden>{arrow}</span>

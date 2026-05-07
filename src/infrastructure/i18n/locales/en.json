@@ -141,7 +141,14 @@
       }
     },
     "hourly": {
-      "title": "Hourly distribution"
+      "title": "Hourly distribution",
+      "summary": "Hourly token and cost distribution",
+      "tableCaption": "Hourly token and cost values",
+      "hourColumn": "Hour",
+      "tooltip": {
+        "tokens": "Tokens",
+        "cost": "Cost"
+      }
     },
     "weekHeatmap": {
       "title": "Weekday × hour heatmap",
@@ -259,5 +266,13 @@
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago",
     "unknown": "–"
+  },
+  "accessibility": {
+    "sortBy": "Sort by {column}",
+    "sortedAsc": "sorted ascending",
+    "sortedDesc": "sorted descending",
+    "openSessionDetail": "Open session details for {id}",
+    "selectProject": "Select project {name}",
+    "donutSummary": "Model cost breakdown: {summary}"
   }
 }
