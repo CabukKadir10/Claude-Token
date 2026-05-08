@@ -14,113 +14,9 @@ A lightweight web dashboard that analyses your Claude Code session token usage a
 [Canlı Demo / Live Demo](https://<kullanici>.github.io/<repo-adi>/)
 [Lisans / License](./LICENSE) · [Katkı / Contributing](#katkı)
   
-[Türkçe](#türkçe) · [English](#english)
+[English](#english) · [Türkçe](#türkçe)
 
 </div>
-
----
-
-## Türkçe
-
-### Nedir?
-
-Claude Code, her oturumunuz için yerelde bir `.jsonl` log dosyası tutar. Bu pano söz konusu dosyaları doğrudan tarayıcınızda okuyup:
-
-- Toplam ve detaylı token tüketimini (giriş / çıkış / cache okuma / cache yazma)
-- Anthropic resmi fiyatlandırması üzerinden tahmini maliyeti (USD)
-- Proje, oturum, gün, saat ve model bazlı kırılımları
-- Trend grafiklerini ve sıralanabilir tabloları
-
-…güvenli bir şekilde gösterir. **Hiçbir dosya/veri sunucuya gönderilmez.**
-
-### Ekran görüntüleri
-
-![Overview](./docs/screenshots/overview.png)
-![Timeline](./docs/screenshots/timeline.png)
-![Sessions](./docs/screenshots/sessions.png)
-
-### Hızlı başlangıç
-
-```bash
-git clone https://github.com/<kullanici>/claude-token-dashboard.git
-cd claude-token-dashboard
-npm install
-npm run dev
-# http://localhost:3000
-```
-
-Tarayıcıda açıldıktan sonra `~/.claude/projects` klasörünü pano üzerine sürükleyip bırakın (Windows'ta: `%USERPROFILE%\.claude\projects`).
-
-### Üretim derlemesi
-
-```bash
-npm run build         # Vercel/Node deploy için
-npm run build:static  # Statik export — herhangi bir static host'ta çalışır
-```
-
-### GitHub Pages dağıtımı
-
-Bu repo `main` branch'ine her push'ta otomatik olarak `gh-pages` branch'ine deploy edilir.
-
-1. GitHub'da **Settings → Pages → Source** altında `gh-pages` branch'ini seçin.
-2. Actions izninin `Read and write permissions` olduğundan emin olun.
-3. İlk deploy sonrası demo URL'niz: `https://<kullanici>.github.io/<repo-adi>/`.
-
-Yerelde statik çıktıyı doğrulamak için:
-
-```bash
-npm run build:static
-npx serve out
-```
-
-### Komutlar
-
-| Komut | Açıklama |
-|---|---|
-| `npm run dev` | Geliştirme sunucusu (HMR). |
-| `npm run build` | Üretim derlemesi. |
-| `npm run start` | Üretim derlemesini yerelde sunar. |
-| `npm run lint` | ESLint + tip kontrolü. |
-| `npm run test` | Vitest birim testleri (domain + application). |
-| `npm run test:e2e` | Playwright kritik akış testleri. |
-
-### Mimari
-
-`src/` altında dört katman: `domain → application → infrastructure → presentation`.
-Bağımlılıklar sadece içe doğrudur. Detay: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
-
-```
-src/
-├── domain/         # Saf iş mantığı (parsing, fiyatlandırma, agregasyon)
-├── application/    # Use case'ler
-├── infrastructure/ # localStorage, dosya okuma, sözlük yükleme
-├── presentation/   # Next.js sayfaları + React bileşenleri
-└── shared/         # Yardımcılar, tipler, sabitler
-```
-
-### Gizlilik
-
-- Hiçbir `.jsonl` dosyası ağa çıkmaz.
-- `localStorage` yalnızca tema tercihi, dil ve fiyat override'larını saklar.
-- Telemetri yoktur. Üçüncü taraf izleyici eklenmez.
-
-### Yol haritası
-
-[`docs/PRD.md`](./docs/PRD.md) içinde detaylı; özet:
-
-- **v0.1** — MVP: 5 görünüm, 2 dil, fiyat editörü.
-- **v0.2** — CSV/JSON export, bütçe göstergesi.
-- **v0.3** — Proje karşılaştırma, etiketleme.
-- **v0.4** — Opsiyonel PWA modu (offline).
-- **v1.0** — Stabil sürüm.
-
-### Katkı
-
-PR'lar memnuniyetle karşılanır. Lütfen önce bir issue açın; yeni metin eklediğinizde **hem `tr.json` hem `en.json`'a** ekleyin (CI eksik anahtarlar için fail eder).
-
-### Lisans
-
-[MIT](./LICENSE)
 
 ---
 
@@ -223,5 +119,109 @@ Full version in [`docs/PRD.en.md`](./docs/PRD.en.md); short version:
 PRs welcome — please open an issue first. When you add new strings, **update both `tr.json` and `en.json`** (CI fails on missing keys).
 
 ### License
+
+[MIT](./LICENSE)
+
+---
+
+## Türkçe
+
+### Nedir?
+
+Claude Code, her oturumunuz için yerelde bir `.jsonl` log dosyası tutar. Bu pano söz konusu dosyaları doğrudan tarayıcınızda okuyup:
+
+- Toplam ve detaylı token tüketimini (giriş / çıkış / cache okuma / cache yazma)
+- Anthropic resmi fiyatlandırması üzerinden tahmini maliyeti (USD)
+- Proje, oturum, gün, saat ve model bazlı kırılımları
+- Trend grafiklerini ve sıralanabilir tabloları
+
+…güvenli bir şekilde gösterir. **Hiçbir dosya/veri sunucuya gönderilmez.**
+
+### Ekran görüntüleri
+
+![Overview](./docs/screenshots/overview.png)
+![Timeline](./docs/screenshots/timeline.png)
+![Sessions](./docs/screenshots/sessions.png)
+
+### Hızlı başlangıç
+
+```bash
+git clone https://github.com/<kullanici>/claude-token-dashboard.git
+cd claude-token-dashboard
+npm install
+npm run dev
+# http://localhost:3000
+```
+
+Tarayıcıda açıldıktan sonra `~/.claude/projects` klasörünü pano üzerine sürükleyip bırakın (Windows'ta: `%USERPROFILE%\.claude\projects`).
+
+### Üretim derlemesi
+
+```bash
+npm run build         # Vercel/Node deploy için
+npm run build:static  # Statik export — herhangi bir static host'ta çalışır
+```
+
+### GitHub Pages dağıtımı
+
+Bu repo `main` branch'ine her push'ta otomatik olarak `gh-pages` branch'ine deploy edilir.
+
+1. GitHub'da **Settings → Pages → Source** altında `gh-pages` branch'ini seçin.
+2. Actions izninin `Read and write permissions` olduğundan emin olun.
+3. İlk deploy sonrası demo URL'niz: `https://<kullanici>.github.io/<repo-adi>/`.
+
+Yerelde statik çıktıyı doğrulamak için:
+
+```bash
+npm run build:static
+npx serve out
+```
+
+### Komutlar
+
+| Komut | Açıklama |
+|---|---|
+| `npm run dev` | Geliştirme sunucusu (HMR). |
+| `npm run build` | Üretim derlemesi. |
+| `npm run start` | Üretim derlemesini yerelde sunar. |
+| `npm run lint` | ESLint + tip kontrolü. |
+| `npm run test` | Vitest birim testleri (domain + application). |
+| `npm run test:e2e` | Playwright kritik akış testleri. |
+
+### Mimari
+
+`src/` altında dört katman: `domain → application → infrastructure → presentation`.
+Bağımlılıklar sadece içe doğrudur. Detay: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+
+```
+src/
+├── domain/         # Saf iş mantığı (parsing, fiyatlandırma, agregasyon)
+├── application/    # Use case'ler
+├── infrastructure/ # localStorage, dosya okuma, sözlük yükleme
+├── presentation/   # Next.js sayfaları + React bileşenleri
+└── shared/         # Yardımcılar, tipler, sabitler
+```
+
+### Gizlilik
+
+- Hiçbir `.jsonl` dosyası ağa çıkmaz.
+- `localStorage` yalnızca tema tercihi, dil ve fiyat override'larını saklar.
+- Telemetri yoktur. Üçüncü taraf izleyici eklenmez.
+
+### Yol haritası
+
+[`docs/PRD.md`](./docs/PRD.md) içinde detaylı; özet:
+
+- **v0.1** — MVP: 5 görünüm, 2 dil, fiyat editörü.
+- **v0.2** — CSV/JSON export, bütçe göstergesi.
+- **v0.3** — Proje karşılaştırma, etiketleme.
+- **v0.4** — Opsiyonel PWA modu (offline).
+- **v1.0** — Stabil sürüm.
+
+### Katkı
+
+PR'lar memnuniyetle karşılanır. Lütfen önce bir issue açın; yeni metin eklediğinizde **hem `tr.json` hem `en.json`'a** ekleyin (CI eksik anahtarlar için fail eder).
+
+### Lisans
 
 [MIT](./LICENSE)

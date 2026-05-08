@@ -42,3 +42,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local planning docs
+docs/ROADMAP.md
+
+# local tool/config folders (project closed)
+.claude/
+.cursor/
+docs/
