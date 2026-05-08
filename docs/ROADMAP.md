@@ -2,7 +2,7 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S20 — README + ekran görüntüleri (proje özeti, 3 ekran görüntüsü, çalıştırma/build/deploy yönergeleri, veri gizliliği vurgusu ve lisans/katkı linkleri).
+> **Son tamamlanan adım:** S20.1 — README canlı demo URL placeholder standardizasyonu (`<your-user>/<repo-name>` formatı).
 >
 > **Aktif adım:** —
 

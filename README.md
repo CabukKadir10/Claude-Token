@@ -11,7 +11,7 @@ A lightweight web dashboard that analyses your Claude Code session token usage a
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
-[Canlı Demo / Live Demo](https://<kullanici>.github.io/<repo-adi>/)
+[Canlı Demo / Live Demo](https://<your-user>.github.io/<repo-name>/)
 [Lisans / License](./LICENSE) · [Katkı / Contributing](#katkı)
   
 [English](#english) · [Türkçe](#türkçe)
