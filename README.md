@@ -12,6 +12,7 @@ A lightweight web dashboard that analyses your Claude Code session token usage a
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
 [Canlı Demo / Live Demo](https://<kullanici>.github.io/<repo-adi>/)
+[Lisans / License](./LICENSE) · [Katkı / Contributing](#katkı)
   
 [Türkçe](#türkçe) · [English](#english)
 
@@ -31,6 +32,12 @@ Claude Code, her oturumunuz için yerelde bir `.jsonl` log dosyası tutar. Bu pa
 - Trend grafiklerini ve sıralanabilir tabloları
 
 …güvenli bir şekilde gösterir. **Hiçbir dosya/veri sunucuya gönderilmez.**
+
+### Ekran görüntüleri
+
+![Overview](./docs/screenshots/overview.png)
+![Timeline](./docs/screenshots/timeline.png)
+![Sessions](./docs/screenshots/sessions.png)
 
 ### Hızlı başlangıç
 
@@ -129,6 +136,12 @@ Claude Code stores a `.jsonl` log per session locally. This dashboard reads thos
 - Trend charts and sortable tables
 
 **No file or data is ever sent to a server.**
+
+### Screenshots
+
+![Overview](./docs/screenshots/overview.png)
+![Timeline](./docs/screenshots/timeline.png)
+![Sessions](./docs/screenshots/sessions.png)
 
 ### Quick start
 

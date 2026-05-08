@@ -2,9 +2,9 @@
 
 > **Dil:** Türkçe. Her madde, sonradan tek başına seçilip geliştirilebilecek bir kullanıcı hikâyesidir. Hikâyeler **yaklaşık öncelik sırasına** göre dizilmiştir; ama bağımlılık zinciri yoksa istediğin sıradan başlayabilirsin.
 
-> **Son tamamlanan adım:** S18 — Erişilebilirlik geçişi (interaktif elementlerde `aria-label` iyileştirmeleri, tablolar için klavye odak/etkileşim, chart'lara text alternatifi ve Lighthouse erişilebilirlik raporu eklenmesi).
+> **Son tamamlanan adım:** S20 — README + ekran görüntüleri (proje özeti, 3 ekran görüntüsü, çalıştırma/build/deploy yönergeleri, veri gizliliği vurgusu ve lisans/katkı linkleri).
 >
-> **Aktif adım:** S19 — Playwright E2E testleri.
+> **Aktif adım:** —
 
 ---
 
@@ -216,11 +216,11 @@
 **Kullanıcı olarak**, kritik kullanıcı akışlarının regresyona uğramadığından emin olmak istiyorum.
 
 **Kabul kriterleri**
-- [ ] Fixture: küçük bir `.jsonl` dosyası (`jsonl-fixture-generator` skill'i ile üret).
-- [ ] Senaryo 1: Dropzone'a fixture bırak → KPI'lar > 0.
-- [ ] Senaryo 2: Timeline view → 7g preset → daily x-ekseni 7 etikete iniyor.
-- [ ] Senaryo 3: Dil değiştir → string'ler değişiyor.
-- [ ] CI'da çalışıyor (S16 deploy workflow'una bağla).
+- [x] Fixture: küçük bir `.jsonl` dosyası (`jsonl-fixture-generator` skill'i ile üret).
+- [x] Senaryo 1: Dropzone'a fixture bırak → KPI'lar > 0.
+- [x] Senaryo 2: Timeline view → 7g preset → daily x-ekseni 7 etikete iniyor.
+- [x] Senaryo 3: Dil değiştir → string'ler değişiyor.
+- [x] CI'da çalışıyor (S16 deploy workflow'una bağla).
 
 **Dosyalar (yeni)**
 - `tests/e2e/*.spec.ts`
@@ -235,11 +235,11 @@
 **Kullanıcı olarak**, GitHub'da projeyi açtığımda ne işe yaradığını ve nasıl çalıştırılacağını saniyeler içinde anlamak istiyorum.
 
 **Kabul kriterleri**
-- [ ] Üstte tek paragraf "ne işe yarar".
-- [ ] Bir GIF veya 2–3 ekran görüntüsü (overview, timeline, sessions).
-- [ ] "Çalıştırma" / "Build" / "Deploy" bölümleri.
-- [ ] Veri gizliliği vurgusu: "tarayıcı dışına çıkmaz".
-- [ ] Lisans + katkı rehberi linki.
+- [x] Üstte tek paragraf "ne işe yarar".
+- [x] Bir GIF veya 2–3 ekran görüntüsü (overview, timeline, sessions).
+- [x] "Çalıştırma" / "Build" / "Deploy" bölümleri.
+- [x] Veri gizliliği vurgusu: "tarayıcı dışına çıkmaz".
+- [x] Lisans + katkı rehberi linki.
 
 **Dosyalar:** `README.md` (etkilenen), `docs/screenshots/` (yeni).
 
