@@ -225,3 +225,8 @@ PR'lar memnuniyetle karşılanır. Lütfen önce bir issue açın; yeni metin ek
 ### Lisans
 
 [MIT](./LICENSE)
+
+
+---
+
+👤 **Author:** [Kadir Çabuk](https://github.com/CabukKadir10) · [Medium](https://medium.com/@Kadir_cbk)
